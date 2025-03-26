@@ -6,7 +6,8 @@ share-frontend/node_modules
 .DS_Store
 Thumbs.db
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.bak
 *.old
 *.orig
@@ -17,3 +18,20 @@ coverage/
 *.env.local
 *.env.*
 !.env.example
+.env
+.env.*.local
+!.env.example
+
+
+# Python-related files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.cpython-*
+
+# SQLite database files
+db.sqlite3
+*.sqlite3 
+*.sqlite
+file_share/db.sqlite3
