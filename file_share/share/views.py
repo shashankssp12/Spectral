@@ -9,6 +9,54 @@ import faiss
 import numpy as np
 from .desc_generator import generate_tag
 from .similar_img import search_similar_images
+# added while creating template views: 
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+
+# Template views : 
+
+# Public pages
+def index_view(request):
+    return render(request, 'share/index.html')
+
+def login_view(request):
+    # Add login logic here if form is submitted
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        # You'll need to authenticate with email instead of username
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')
+    return render(request, 'share/login.html')
+
+def signup_view(request):
+    # Add signup logic here if form is submitted
+    if request.method == 'POST':
+        # Process the form data and create a new user
+        # You could use your UserRegistrationSerializer here
+        pass
+    return render(request, 'share/signup.html')
+
+# Protected pages - require login
+@login_required
+def dashboard_view(request):
+    # Get user's shared files
+    shared_files = request.user.sharedfile_set.all()
+    return render(request, 'share/dashboard.html', {'shared_files': shared_files})
+
+@login_required
+def image_search_view(request):
+    return render(request, 'share/image-search.html')
+
+
+
+
+#-- Existing code - REST API views -- 
 
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
@@ -25,6 +73,7 @@ class UserRegistrationView(APIView):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -38,7 +87,6 @@ class UserProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class SharedFileView(APIView):
@@ -87,7 +135,6 @@ class SharedFileView(APIView):
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class SharedFileDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -105,7 +152,6 @@ class SharedFileDetailView(APIView):
         except Exception as e:
             print(e)
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class SimilarImagesView(APIView):
