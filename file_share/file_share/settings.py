@@ -1,4 +1,4 @@
-from os import os
+import os
 from pathlib import Path
 
 
