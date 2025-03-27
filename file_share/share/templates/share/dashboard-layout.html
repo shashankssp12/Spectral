@@ -1,7 +1,7 @@
 {% extends 'share/base.html' %}
 {% load static %}
 
-{% block title %}{% block dashboard_title %}Dashboard{% endblock %} - Spectral{% endblock %}
+{% block title %}{% block dashboard_title %}Dashboard{% endblock dashboard_title %} - Spectral{% endblock title %}
 
 {% block content %}
 <div class="flex min-h-screen flex-col">
@@ -176,7 +176,7 @@
     
     <!-- Main Content -->
     <main class="flex-1 p-6">
-      {% block dashboard_content %}{% endblock %}
+      {% block dashboard_content %}{% endblock dashboard_content %}
     </main>
   </div>
 </div>
@@ -363,4 +363,5 @@
     }
   }
 </script>
-{% endblock %}
+{% endblock dashboard_js %}
+{% endblock content %}
