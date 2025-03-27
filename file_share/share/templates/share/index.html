@@ -1,0 +1,117 @@
+{% extends 'share/base.html' %}
+{% load static %}
+
+{% block title %}Spectral - Modern File Sharing{% endblock %}
+
+{% block content %}
+  <!-- Header -->
+  <header class="border-b bg-white">
+    <div class="container mx-auto flex h-16 items-center justify-between px-4">
+      <div class="flex items-center gap-2">
+        <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-500"></div>
+        <span class="text-xl font-bold">Spectral</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="{% url 'login' %}" class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Login</a>
+        <a href="{% url 'signup' %}" class="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">Sign Up</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1">
+    <!-- Hero Section -->
+    <section class="container mx-auto py-24 md:py-32 px-4">
+      <div class="grid gap-8 md:grid-cols-2 md:gap-12">
+        <div class="flex flex-col justify-center space-y-4">
+          <h1 class="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+            Store, share, and find your files with ease
+          </h1>
+          <p class="text-gray-500 md:text-xl">
+            Spectral helps you organize your files and discover similar images with AI-powered search.
+          </p>
+          <div class="flex flex-col gap-2 min-[400px]:flex-row">
+            <a href="{% url 'signup' %}" class="inline-flex items-center justify-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
+              Get Started <i class="ri-arrow-right-line"></i>
+            </a>
+            <a href="{% url 'login' %}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              Login to Your Account
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center justify-center">
+          <div class="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100 shadow-lg md:aspect-square">
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-500/20 backdrop-blur-sm">
+              <div class="grid h-full grid-cols-3 gap-2 p-4">
+                <!-- Grid items with animation -->
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse"></div>
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse animation-delay-200"></div>
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse animation-delay-400"></div>
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse animation-delay-200"></div>
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse animation-delay-400"></div>
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse"></div>
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse animation-delay-400"></div>
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse"></div>
+                <div class="aspect-square rounded-lg bg-white/80 shadow-sm animate-pulse animation-delay-200"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="border-t bg-gray-100/50">
+      <div class="container mx-auto py-16 md:py-20 px-4">
+        <h2 class="mb-8 text-center text-3xl font-bold">Key Features</h2>
+        <div class="grid gap-8 md:grid-cols-3">
+          <!-- Feature 1 -->
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+              <i class="ri-upload-cloud-line text-2xl"></i>
+            </div>
+            <h3 class="mb-2 text-xl font-bold">Easy File Upload</h3>
+            <p class="text-gray-500">
+              Upload any type of file with a simple drag and drop interface.
+            </p>
+          </div>
+          
+          <!-- Feature 2 -->
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+              <i class="ri-search-line text-2xl"></i>
+            </div>
+            <h3 class="mb-2 text-xl font-bold">Image Search</h3>
+            <p class="text-gray-500">
+              Find similar images in your collection using our advanced AI technology.
+            </p>
+          </div>
+          
+          <!-- Feature 3 -->
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+              <i class="ri-share-line text-2xl"></i>
+            </div>
+            <h3 class="mb-2 text-xl font-bold">Flexible Sharing</h3>
+            <p class="text-gray-500">
+              Control who can access your files with public and private sharing options.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t py-6 bg-white">
+    <div class="container mx-auto flex flex-col items-center justify-between gap-4 md:flex-row px-4">
+      <div class="flex items-center gap-2">
+        <div class="h-6 w-6 rounded-md bg-gradient-to-br from-purple-600 to-blue-500"></div>
+        <span class="text-sm font-semibold">Spectral</span>
+      </div>
+      <p class="text-center text-sm text-gray-500">
+        &copy; <script>document.write(new Date().getFullYear())</script> Spectral. All rights reserved.
+      </p>
+    </div>
+  </footer>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'share/base.html' %}
+{% load static %}
+
+{% block title %}Sign Up - Spectral{% endblock %}
+
+{% block body_class %}flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4{% endblock %}
+
+{% block content %}
+  <a href="{% url 'index' %}" class="mb-8 flex items-center gap-2">
+    <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-500"></div>
+    <span class="text-xl font-bold">Spectral</span>
+  </a>
+  
+  <div class="w-full max-w-md rounded-lg border bg-white shadow-sm">
+    <div class="space-y-1 border-b p-6">
+      <h1 class="text-2xl font-bold">Create an account</h1>
+      <p class="text-sm text-gray-500">
+        Enter your information to create a Spectral account
+      </p>
+    </div>
+    <form method="post" action="{% url 'signup' %}">
+      {% csrf_token %}
+      <div class="space-y-4 p-6">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label for="first_name" class="text-sm font-medium">First name</label>
+            <input id="first_name" name="first_name" type="text" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
+          </div>
+          <div class="space-y-2">
+            <label for="last_name" class="text-sm font-medium">Last name</label>
+            <input id="last_name" name="last_name" type="text" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label for="username" class="text-sm font-medium">Username</label>
+          <input id="username" name="username" type="text" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500" required>
+        </div>
+        <div class="space-y-2">
+          <label for="email" class="text-sm font-medium">Email</label>
+          <input id="email" name="email" type="email" placeholder="name@example.com" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500" required>
+        </div>
+        <div class="space-y-2">
+          <label for="password" class="text-sm font-medium">Password</label>
+          <input id="password" name="password" type="password" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500" required>
+        </div>
+        <div class="space-y-2">
+          <label for="password2" class="text-sm font-medium">Confirm Password</label>
+          <input id="password2" name="password2" type="password" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500" required>
+        </div>
+        
+        {% if form.errors %}
+        <div class="rounded-md bg-red-50 p-4">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+            <p class="text-sm text-red-700">{{ field }}: {{ error }}</p>
+            {% endfor %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="flex flex-col space-y-4 border-t p-6">
+        <button type="submit" class="w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">Create Account</button>
+        <div class="text-center text-sm">
+          Already have an account?
+          <a href="{% url 'login' %}" class="text-purple-600 hover:underline">
+            Login
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}

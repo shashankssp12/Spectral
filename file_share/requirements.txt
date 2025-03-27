@@ -22,3 +22,5 @@ sqlparse==0.5.2
 transformers==4.46.3
 typing_extensions==4.12.2
 urllib3==2.2.3
+faiss-cpu==1.10.0
+torch==3.0.1

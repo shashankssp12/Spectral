@@ -1,0 +1,295 @@
+{% extends 'share/dashboard-layout.html' %}
+{% load static %}
+
+{% block dashboard_title %}Image Search{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8 flex items-center gap-4">
+  <a href="{% url 'dashboard' %}" class="rounded-md p-1 text-gray-500 hover:bg-gray-100">
+    <i class="ri-arrow-left-line text-xl"></i>
+  </a>
+  <h1 class="text-3xl font-bold tracking-tight">Image Search</h1>
+</div>
+
+<div class="rounded-lg border bg-white shadow-sm">
+  <div class="p-6">
+    <div class="mb-8 text-center">
+      <h2 class="mb-2 text-xl font-semibold">Find Similar Images</h2>
+      <p class="text-gray-500">
+        Upload an image to find similar images in your collection
+      </p>
+    </div>
+    
+    <!-- Image Upload Area -->
+    <div id="image-search-container" class="mx-auto max-w-md">
+      <form id="image-search-form" method="get" action="{% url 'similar_images' %}">
+        {% csrf_token %}
+        <div id="image-search-upload-area" class="flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 hover:border-purple-500 hover:bg-purple-50">
+          <i class="ri-upload-cloud-line mb-4 text-4xl text-gray-400"></i>
+          <p class="mb-2 text-sm font-medium">
+            Drag an image here or click to browse
+          </p>
+          <p class="text-xs text-gray-500">
+            Upload an image to find similar images in your collection
+          </p>
+          <input id="image-search-input" type="file" accept="image/*" class="hidden" name="image">
+          <input type="hidden" id="image-url" name="image_url" value="">
+        </div>
+      
+        <!-- Preview Area (hidden by default) -->
+        <div id="image-preview-container" class="relative hidden rounded-lg border mt-4">
+          <div class="aspect-square w-full overflow-hidden rounded-lg">
+            <img id="preview-image" src="#" alt="Search reference" class="h-full w-full object-cover">
+          </div>
+          <button id="remove-image" type="button" class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600">
+            <i class="ri-close-line"></i>
+          </button>
+          <div class="p-4 flex justify-end">
+            <button type="submit" id="search-button" class="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
+              <i class="ri-search-line"></i>
+              Find Similar Images
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Search Results (hidden by default) -->
+    <div id="search-results" class="mt-8 hidden">
+      <h3 class="mb-4 text-lg font-medium">Search Results</h3>
+      
+      <!-- Loading State (hidden by default) -->
+      <div id="loading-results" class="hidden">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <!-- Loading Skeletons -->
+          <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
+            <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
+            <div class="p-4">
+              <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
+              <div class="mt-2 h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
+            </div>
+          </div>
+          <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
+            <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
+            <div class="p-4">
+              <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
+              <div class="mt-2 h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
+            </div>
+          </div>
+          <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
+            <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
+            <div class="p-4">
+              <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
+              <div class="mt-2 h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Results Grid -->
+      <div id="results-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        {% if similar_images %}
+          {% for image_url, similarity in similar_images %}
+            <div class="overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md">
+              <div class="relative aspect-square bg-gray-100">
+                <img src="{{ image_url }}" alt="Similar image" class="h-full w-full object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">
+                      {{ similarity|floatformat:0 }}% Match
+                    </span>
+                    <button class="flex h-7 w-7 items-center justify-center rounded-md text-white hover:bg-white/20 star-button">
+                      <i class="ri-star-line"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="p-4">
+                <h3 class="truncate font-medium">{{ image_url|cut:"https://"|truncatechars:30 }}</h3>
+              </div>
+              
+              <div class="border-t bg-gray-50 p-2 flex justify-end">
+                <a href="{{ image_url }}" download class="h-8 w-8 rounded-md p-1 text-gray-500 hover:bg-gray-100">
+                  <i class="ri-download-line"></i>
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <!-- Only show this when a search has been performed -->
+          {% if request.GET.image_url %}
+            <div class="col-span-full text-center py-8">
+              <p class="text-gray-500">No similar images found. Try with a different image.</p>
+            </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block dashboard_js %}
+{{ block.super }}
+<script>
+  // Image search functionality
+  const imageSearchArea = document.getElementById('image-search-upload-area');
+  const imageSearchInput = document.getElementById('image-search-input');
+  const imagePreviewContainer = document.getElementById('image-preview-container');
+  const previewImage = document.getElementById('preview-image');
+  const removeImageButton = document.getElementById('remove-image');
+  const searchResults = document.getElementById('search-results');
+  const loadingResults = document.getElementById('loading-results');
+  const resultsGrid = document.getElementById('results-grid');
+  const imageUrlInput = document.getElementById('image-url');
+  
+  // Check if URL has search parameters on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.search.includes('image_url=')) {
+      searchResults.classList.remove('hidden');
+      
+      // If there are results from backend, they'll be rendered already in the template
+    }
+  });
+  
+  // Handle click on upload area
+  imageSearchArea.addEventListener('click', function() {
+    imageSearchInput.click();
+  });
+  
+  // Handle file selection
+  imageSearchInput.addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        previewImage.src = e.target.result;
+        imageSearchArea.classList.add('hidden');
+        imagePreviewContainer.classList.remove('hidden');
+        
+        // Upload the file to get a URL for it
+        uploadImage(file);
+      };
+      
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // Function to upload image and get a URL for it
+  async function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('share_type', 'private');  // Set as private by default
+    formData.append('share_expiry', new Date(Date.now() + 86400000).toISOString());  // 24 hours from now
+    formData.append('file_type', file.type.split('/')[1]);
+    formData.append('shared_to', JSON.stringify([]));  // No specific users to share with
+    
+    try {
+      const response = await fetch('/api/shared-files/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: formData
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Set the URL for the image search
+        imageUrlInput.value = data.file;
+      } else {
+        alert('Failed to upload image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    }
+  }
+  
+  // Remove image
+  removeImageButton.addEventListener('click', function() {
+    imagePreviewContainer.classList.add('hidden');
+    imageSearchArea.classList.remove('hidden');
+    searchResults.classList.add('hidden');
+    imageSearchInput.value = '';
+    imageUrlInput.value = '';
+  });
+  
+  // Prevent default drag behaviors
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    imageSearchArea.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+  
+  // Highlight drop area when item is dragged over it
+  ['dragenter', 'dragover'].forEach(eventName => {
+    imageSearchArea.addEventListener(eventName, highlight, false);
+  });
+  
+  ['dragleave', 'drop'].forEach(eventName => {
+    imageSearchArea.addEventListener(eventName, unhighlight, false);
+  });
+  
+  // Handle dropped files
+  imageSearchArea.addEventListener('drop', handleDrop, false);
+  
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  function highlight() {
+    imageSearchArea.classList.add('border-purple-500', 'bg-purple-50');
+  }
+  
+  function unhighlight() {
+    imageSearchArea.classList.remove('border-purple-500', 'bg-purple-50');
+  }
+  
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    
+    if (files && files[0]) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        imageSearchInput.files = files;
+        const event = new Event('change', { bubbles: true });
+        imageSearchInput.dispatchEvent(event);
+      }
+    }
+  }
+  
+  // Star functionality for similar images
+  document.querySelectorAll('.star-button').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const icon = this.querySelector('i');
+      if (icon.classList.contains('ri-star-line')) {
+        icon.classList.remove('ri-star-line');
+        icon.classList.add('ri-star-fill');
+        icon.classList.add('text-yellow-400');
+      } else {
+        icon.classList.remove('ri-star-fill');
+        icon.classList.remove('text-yellow-400');
+        icon.classList.add('ri-star-line');
+      }
+    });
+  });
+  
+  // Handle form submission to show loading state
+  document.getElementById('image-search-form').addEventListener('submit', function(e) {
+    if (!imageUrlInput.value) {
+      e.preventDefault();
+      alert('Please upload an image first.');
+      return;
+    }
+    
+    searchResults.classList.remove('hidden');
+    loadingResults.classList.remove('hidden');
+    resultsGrid.classList.add('hidden');
+  });
+</script>
+{% endblock %}
