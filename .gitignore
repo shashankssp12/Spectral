@@ -1,37 +1,52 @@
-env
-share-frontend/node_modules
-*.log
-*.tmp
-*.swp
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/*
-!.vscode/settings.json
-*.bak
-*.old
-*.orig
-*.lock
-dist/
-build/
-coverage/
-*.env.local
-*.env.*
-!.env.example
-.env
-.env.*.local
-!.env.example
-
-
-# Python-related files
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 *.pyc
 *.pyo
 *.pyd
-__pycache__/
-*.cpython-*
 
-# SQLite database files
+# Virtual Environment
+env/
+venv/
+ENV/
+
+# Database
 db.sqlite3
-*.sqlite3 
+*.sqlite3
 *.sqlite
-file_share/db.sqlite3
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.bak
+*.old
+*.orig
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# Build and distribution
+dist/
+build/
+coverage/
+
+# Environment variables
+.env
+.env.*
+*.env.*
+*.env.local
+!.env.example
+
+# Frontend
+share-frontend/node_modules
+*.lock
