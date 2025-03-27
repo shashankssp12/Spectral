@@ -11,7 +11,7 @@ from .desc_generator import generate_tag
 from .similar_img import search_similar_images
 # added while creating template views: 
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
@@ -53,7 +53,9 @@ def dashboard_view(request):
 def image_search_view(request):
     return render(request, 'share/image-search.html')
 
-
+def logout_view(request):
+    logout(request)
+    return redirect('index')
 
 
 #-- Existing code - REST API views -- 
