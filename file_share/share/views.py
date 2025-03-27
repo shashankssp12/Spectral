@@ -96,14 +96,29 @@ class SharedFileView(APIView):
 
     def post(self, request):
         try:
+            # Add the current user as the file owner
             request.data['shared_by'] = request.user.id
-            if request.data['file_type'].lower() == "png" or request.data['file_type'].lower() == "jpg" or request.data['file_type'].lower() == "webp" or request.data['file_type'].lower() == "jpeg":
-                image_tags = generate_tag(request.data['file'])
+            
+            # Process file metadata
+            file_type = request.data.get('file_type', '').lower()
+            file_url = request.data.get('file')
+            
+            # Create serializer for the file
             serializer = SharedFileSerializer(data=request.data)
+            
             if serializer.is_valid():
-                serializer.validated_data['file_description'] = image_tags
-
-                serializer.save()
+                # Generate description for images
+                if file_type in ['png', 'jpg', 'jpeg', 'webp', 'gif'] and file_url:
+                    try:
+                        image_tags = generate_tag(file_url)
+                        serializer.validated_data['file_description'] = image_tags
+                    except Exception as e:
+                        # Continue without description if generation fails
+                        print(f"Error generating image description: {e}")
+                
+                # Save the file
+                file_obj = serializer.save()
+                
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -111,18 +126,59 @@ class SharedFileView(APIView):
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        shared_files = SharedFileSerializer(
-            request.user.sharedfile_set.all(), many=True
-        )
+        # Get file type filter from query params
+        file_type = request.query_params.get('type', 'all')
+        
+        # Get all files for the current user
+        files = request.user.sharedfile_set.all()
+        
+        # Apply file type filter if specified
+        if file_type != 'all':
+            if file_type == 'images':
+                files = files.filter(file_type__in=['png', 'jpg', 'jpeg', 'webp', 'gif'])
+            elif file_type == 'videos':
+                files = files.filter(file_type__in=['mp4', 'webm', 'mov', 'avi'])
+            elif file_type == 'documents':
+                # Exclude images and videos
+                files = files.exclude(file_type__in=['png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov', 'avi'])
+        
+        # Serialize and return the files
+        shared_files = SharedFileSerializer(files, many=True)
         return Response(shared_files.data)
 
     def put(self, request, pk):
         try:
             shared_file = request.user.sharedfile_set.get(pk=pk)
+            
+            # Check if this is a description generation request
+            if 'generate_description' in request.data and request.data['generate_description']:
+                if shared_file.file_type.lower() in ['png', 'jpg', 'jpeg', 'webp', 'gif']:
+                    try:
+                        # Generate description for image
+                        image_tags = generate_tag(shared_file.file)
+                        shared_file.file_description = image_tags
+                        shared_file.save()
+                        
+                        return Response({
+                            'id': shared_file.id,
+                            'file_description': shared_file.file_description
+                        })
+                    except Exception as e:
+                        print(f"Error generating image description: {e}")
+                        return Response({
+                            'error': 'Failed to generate description'
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                else:
+                    return Response({
+                        'error': 'Description generation is only supported for images'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Regular update request (e.g., changing privacy)
             serializer = SharedFileSerializer(shared_file, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
+            
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
