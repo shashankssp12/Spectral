@@ -13,6 +13,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import HttpResponse, Http404, FileResponse
+import os
+from django.conf import settings
 from django.conf import settings
 from django.db import models
 import os
@@ -434,21 +436,56 @@ class SimilarImagesView(APIView):
     def get(self, request):
         query_image_url = request.query_params.get("image_url")
         
-        # Convert relative URLs to absolute URLs
-        if query_image_url and query_image_url.startswith('/'):
-            query_image_url = request.build_absolute_uri(query_image_url)
+        if not query_image_url:
+            return Response({'error': 'No image URL provided'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Get all image URLs and convert relative paths to absolute URLs
-        image_urls = []
-        for img in SharedFile.objects.all():
-            img_url = img.get_file_url()
-            if img_url and img_url.startswith('/'):
-                img_url = request.build_absolute_uri(img_url)
-            image_urls.append(img_url)
+        # Convert URL to file path
+        if query_image_url.startswith('/media/uploads/'):
+            query_image_filename = query_image_url.replace('/media/uploads/', '')
+            query_image_path = os.path.join(settings.MEDIA_ROOT, 'uploads', query_image_filename)
+        elif query_image_url.startswith('/protected-media/uploads/'):
+            query_image_filename = query_image_url.replace('/protected-media/uploads/', '')
+            query_image_path = os.path.join(settings.MEDIA_ROOT, 'uploads', query_image_filename)
+        else:
+            return Response({'error': 'Invalid image URL format'}, status=status.HTTP_400_BAD_REQUEST)
         
-        similar_images = search_similar_images(query_image_url, image_urls)
-
-        return Response(similar_images)
+        # Check if query image file exists
+        if not os.path.exists(query_image_path):
+            return Response({'error': 'Query image file not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Get all image file paths
+        image_paths = []
+        image_files = []
+        for shared_file in SharedFile.objects.filter(file_type__in=['png', 'jpg', 'jpeg', 'webp', 'gif']):
+            if shared_file.file:
+                file_path = shared_file.file.path
+                if os.path.exists(file_path):
+                    image_paths.append(file_path)
+                    image_files.append(shared_file)
+        
+        try:
+            similar_images = search_similar_images(query_image_path, image_paths)
+            
+            # Convert file paths back to file info for response
+            result = []
+            for file_path, similarity in similar_images:
+                # Find the corresponding SharedFile object
+                for shared_file in image_files:
+                    if shared_file.file.path == file_path:
+                        result.append({
+                            'id': shared_file.id,
+                            'file_name': shared_file.file_name,
+                            'file_url': shared_file.get_file_url(),
+                            'similarity': similarity,
+                            'file_size': shared_file.file_size,
+                            'share_time': shared_file.share_time.isoformat(),
+                        })
+                        break
+            
+            return Response(result)
+            
+        except Exception as e:
+            return Response({'error': f'Error processing images: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class StarredFileView(APIView):

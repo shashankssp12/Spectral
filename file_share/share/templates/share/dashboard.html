@@ -447,7 +447,7 @@
             if (newStarredState) {
               this.innerHTML = '<i class="ri-star-fill text-yellow-500"></i>';
               this.title = 'Remove from starred';
-              
+
               // Add/update star indicator in top-right corner
               const imageContainer = fileCard.querySelector('.aspect-square');
               let starIndicator = imageContainer.querySelector('.absolute.top-2.right-2');
@@ -460,7 +460,7 @@
             } else {
               this.innerHTML = '<i class="ri-star-line"></i>';
               this.title = 'Add to starred';
-              
+
               // Remove star indicator from top-right corner
               const imageContainer = fileCard.querySelector('.aspect-square');
               const starIndicator = imageContainer.querySelector('.absolute.top-2.right-2');

@@ -4,7 +4,7 @@
 {% block dashboard_title %}Image Search{% endblock %}
 
 {% block dashboard_content %}
-<div class="mb-8 flex items-center gap-4">
+<div class="mb-6 flex items-center gap-4">
   <a href="{% url 'dashboard' %}" class="rounded-md p-1 text-gray-500 hover:bg-gray-100">
     <i class="ri-arrow-left-line text-xl"></i>
   </a>
@@ -13,117 +13,120 @@
 
 <div class="rounded-lg border bg-white shadow-sm">
   <div class="p-6">
-    <div class="mb-8 text-center">
+    <div class="mb-6 text-center">
       <h2 class="mb-2 text-xl font-semibold">Find Similar Images</h2>
       <p class="text-gray-500">
         Upload an image to find similar images in your collection
       </p>
     </div>
-    
-    <!-- Image Upload Area -->
-    <div id="image-search-container" class="mx-auto max-w-md">
-      <form id="image-search-form" method="get" action="{% url 'similar_images' %}">
-        {% csrf_token %}
-        <div id="image-search-upload-area" class="flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 hover:border-purple-500 hover:bg-purple-50">
-          <i class="ri-upload-cloud-line mb-4 text-4xl text-gray-400"></i>
-          <p class="mb-2 text-sm font-medium">
-            Drag an image here or click to browse
-          </p>
-          <p class="text-xs text-gray-500">
-            Upload an image to find similar images in your collection
-          </p>
-          <input id="image-search-input" type="file" accept="image/*" class="hidden" name="image">
-          <input type="hidden" id="image-url" name="image_url" value="">
-        </div>
-      
-        <!-- Preview Area (hidden by default) -->
-        <div id="image-preview-container" class="relative hidden rounded-lg border mt-4">
-          <div class="aspect-square w-full overflow-hidden rounded-lg">
-            <img id="preview-image" src="#" alt="Search reference" class="h-full w-full object-cover">
+
+    <!-- Image Upload and Search Area -->
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+      <!-- Upload Section -->
+      <div id="image-search-container" class="w-full lg:w-80 flex-shrink-0">
+        <form id="image-search-form">
+          {% csrf_token %}
+          <div id="image-search-upload-area"
+            class="flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-4 hover:border-purple-500 hover:bg-purple-50">
+            <i class="ri-upload-cloud-line mb-3 text-3xl text-gray-400"></i>
+            <p class="mb-1 text-sm font-medium text-center">
+              Drag an image here or click to browse
+            </p>
+            <p class="text-xs text-gray-500 text-center">
+              Find similar images in your collection
+            </p>
+            <input id="image-search-input" type="file" accept="image/*" class="hidden" name="image">
+            <input type="hidden" id="image-url" name="image_url" value="">
           </div>
-          <button id="remove-image" type="button" class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600">
-            <i class="ri-close-line"></i>
-          </button>
-          <div class="p-4 flex justify-end">
-            <button type="submit" id="search-button" class="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
-              <i class="ri-search-line"></i>
-              Find Similar Images
+
+          <!-- Preview Area (hidden by default) -->
+          <div id="image-preview-container" class="relative hidden rounded-lg border mt-4">
+            <div class="aspect-square w-full overflow-hidden rounded-lg max-w-80">
+              <img id="preview-image" src="#" alt="Search reference" class="h-full w-full object-cover">
+            </div>
+            <button id="remove-image" type="button"
+              class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600">
+              <i class="ri-close-line"></i>
             </button>
-          </div>
-        </div>
-      </form>
-    </div>
-    
-    <!-- Search Results (hidden by default) -->
-    <div id="search-results" class="mt-8 hidden">
-      <h3 class="mb-4 text-lg font-medium">Search Results</h3>
-      
-      <!-- Loading State (hidden by default) -->
-      <div id="loading-results" class="hidden">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          <!-- Loading Skeletons -->
-          <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
-            <div class="p-4">
-              <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
-              <div class="mt-2 h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
+            <div class="mt-4">
+              <button type="submit" id="search-button"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-md bg-purple-600 px-4 py-3 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="ri-search-line"></i>
+                Find Similar Images
+              </button>
             </div>
           </div>
-          <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
-            <div class="p-4">
-              <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
-              <div class="mt-2 h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
-            </div>
-          </div>
-          <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
-            <div class="p-4">
-              <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
-              <div class="mt-2 h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
-            </div>
-          </div>
-        </div>
+        </form>
       </div>
-      
-      <!-- Results Grid -->
-      <div id="results-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {% if similar_images %}
-          {% for image_url, similarity in similar_images %}
-            <div class="overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md">
-              <div class="relative aspect-square bg-gray-100">
-                <img src="{{ image_url }}" alt="Similar image" class="h-full w-full object-cover">
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm font-medium">
-                      {{ similarity|floatformat:0 }}% Match
-                    </span>
-                    <button class="flex h-7 w-7 items-center justify-center rounded-md text-white hover:bg-white/20 star-button">
-                      <i class="ri-star-line"></i>
-                    </button>
+
+      <!-- Results Section -->
+      <div id="search-results" class="flex-1 hidden">
+        <div class="mb-6 border-b border-gray-200 pb-4">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100">
+              <i class="ri-search-eye-line text-purple-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900">Similar Images Found</h3>
+          </div>
+          <p class="text-gray-600 text-sm ml-11">Results ranked by similarity to your uploaded image</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-results" class="hidden">
+          <div class="space-y-8">
+            <!-- Top results loading -->
+            <div>
+              <h4 class="text-lg font-medium mb-4 flex items-center gap-2">
+                <i class="ri-trophy-line text-yellow-500"></i>
+                Top Matches
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div class="overflow-hidden rounded-xl border bg-white shadow-sm">
+                  <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
+                  <div class="p-4">
+                    <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200 mb-2"></div>
+                    <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200"></div>
+                  </div>
+                </div>
+                <div class="overflow-hidden rounded-xl border bg-white shadow-sm">
+                  <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
+                  <div class="p-4">
+                    <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200 mb-2"></div>
+                    <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200"></div>
+                  </div>
+                </div>
+                <div class="overflow-hidden rounded-xl border bg-white shadow-sm">
+                  <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
+                  <div class="p-4">
+                    <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200 mb-2"></div>
+                    <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200"></div>
                   </div>
                 </div>
               </div>
-              
-              <div class="p-4">
-                <h3 class="truncate font-medium">{{ image_url|cut:"https://"|truncatechars:30 }}</h3>
-              </div>
-              
-              <div class="border-t bg-gray-50 p-2 flex justify-end">
-                <a href="{{ image_url }}" download class="h-8 w-8 rounded-md p-1 text-gray-500 hover:bg-gray-100">
-                  <i class="ri-download-line"></i>
-                </a>
+            </div>
+            <!-- Other results loading -->
+            <div>
+              <h4 class="text-lg font-medium mb-4 flex items-center gap-2">
+                <i class="ri-grid-line text-gray-500"></i>
+                Other Matches
+              </h4>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
+                  <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
+                  <div class="p-2">
+                    <div class="h-3 w-full animate-pulse rounded bg-gray-200 mb-1"></div>
+                    <div class="h-4 w-12 animate-pulse rounded-full bg-gray-200"></div>
+                  </div>
+                </div>
               </div>
             </div>
-          {% endfor %}
-        {% else %}
-          <!-- Only show this when a search has been performed -->
-          {% if request.GET.image_url %}
-            <div class="col-span-full text-center py-8">
-              <p class="text-gray-500">No similar images found. Try with a different image.</p>
-            </div>
-          {% endif %}
-        {% endif %}
+          </div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="results-container">
+          <!-- Results will be populated dynamically -->
+        </div>
       </div>
     </div>
   </div>
@@ -141,42 +144,39 @@
   const removeImageButton = document.getElementById('remove-image');
   const searchResults = document.getElementById('search-results');
   const loadingResults = document.getElementById('loading-results');
-  const resultsGrid = document.getElementById('results-grid');
+  const resultsContainer = document.getElementById('results-container');
   const imageUrlInput = document.getElementById('image-url');
-  
+
   // Check if URL has search parameters on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    if (window.location.search.includes('image_url=')) {
-      searchResults.classList.remove('hidden');
-      
-      // If there are results from backend, they'll be rendered already in the template
-    }
+  document.addEventListener('DOMContentLoaded', function () {
+    // Initialize the page - no need to check for URL parameters anymore
+    // since we're handling everything via AJAX
   });
-  
+
   // Handle click on upload area
-  imageSearchArea.addEventListener('click', function() {
+  imageSearchArea.addEventListener('click', function () {
     imageSearchInput.click();
   });
-  
+
   // Handle file selection
-  imageSearchInput.addEventListener('change', function(e) {
+  imageSearchInput.addEventListener('change', function (e) {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      
-      reader.onload = function(e) {
+
+      reader.onload = function (e) {
         previewImage.src = e.target.result;
         imageSearchArea.classList.add('hidden');
         imagePreviewContainer.classList.remove('hidden');
-        
+
         // Upload the file to get a URL for it
         uploadImage(file);
       };
-      
+
       reader.readAsDataURL(file);
     }
   });
-  
+
   // Function to upload image and get a URL for it
   async function uploadImage(file) {
     const formData = new FormData();
@@ -185,7 +185,7 @@
     formData.append('share_expiry', new Date(Date.now() + 86400000).toISOString());  // 24 hours from now
     formData.append('file_type', file.type.split('/')[1]);
     formData.append('shared_to', JSON.stringify([]));  // No specific users to share with
-    
+
     try {
       const response = await fetch('/api/shared-files/', {
         method: 'POST',
@@ -194,7 +194,7 @@
         },
         body: formData
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         // Set the URL for the image search
@@ -207,51 +207,51 @@
       alert('An error occurred. Please try again.');
     }
   }
-  
+
   // Remove image
-  removeImageButton.addEventListener('click', function() {
+  removeImageButton.addEventListener('click', function () {
     imagePreviewContainer.classList.add('hidden');
     imageSearchArea.classList.remove('hidden');
     searchResults.classList.add('hidden');
     imageSearchInput.value = '';
     imageUrlInput.value = '';
   });
-  
+
   // Prevent default drag behaviors
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     imageSearchArea.addEventListener(eventName, preventDefaults, false);
     document.body.addEventListener(eventName, preventDefaults, false);
   });
-  
+
   // Highlight drop area when item is dragged over it
   ['dragenter', 'dragover'].forEach(eventName => {
     imageSearchArea.addEventListener(eventName, highlight, false);
   });
-  
+
   ['dragleave', 'drop'].forEach(eventName => {
     imageSearchArea.addEventListener(eventName, unhighlight, false);
   });
-  
+
   // Handle dropped files
   imageSearchArea.addEventListener('drop', handleDrop, false);
-  
+
   function preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
   }
-  
+
   function highlight() {
     imageSearchArea.classList.add('border-purple-500', 'bg-purple-50');
   }
-  
+
   function unhighlight() {
     imageSearchArea.classList.remove('border-purple-500', 'bg-purple-50');
   }
-  
+
   function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
-    
+
     if (files && files[0]) {
       const file = files[0];
       if (file.type.startsWith('image/')) {
@@ -261,35 +261,355 @@
       }
     }
   }
-  
-  // Star functionality for similar images
-  document.querySelectorAll('.star-button').forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const icon = this.querySelector('i');
-      if (icon.classList.contains('ri-star-line')) {
-        icon.classList.remove('ri-star-line');
-        icon.classList.add('ri-star-fill');
-        icon.classList.add('text-yellow-400');
-      } else {
-        icon.classList.remove('ri-star-fill');
-        icon.classList.remove('text-yellow-400');
-        icon.classList.add('ri-star-line');
-      }
-    });
-  });
-  
-  // Handle form submission to show loading state
-  document.getElementById('image-search-form').addEventListener('submit', function(e) {
+
+  // Handle form submission with AJAX
+  document.getElementById('image-search-form').addEventListener('submit', async function (e) {
+    e.preventDefault(); // Always prevent default form submission
+
     if (!imageUrlInput.value) {
-      e.preventDefault();
       alert('Please upload an image first.');
       return;
     }
-    
+
+    const searchButton = document.getElementById('search-button');
+    const originalButtonContent = searchButton.innerHTML;
+
+    // Show loading state
+    searchButton.disabled = true;
+    searchButton.innerHTML = '<i class="ri-loader-2-line animate-spin"></i> Searching...';
+
     searchResults.classList.remove('hidden');
     loadingResults.classList.remove('hidden');
-    resultsGrid.classList.add('hidden');
+    resultsContainer.classList.add('hidden');
+
+    try {
+      // Make AJAX request to search for similar images
+      const response = await fetch(`/similar-images/?image_url=${encodeURIComponent(imageUrlInput.value)}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+      });
+
+      if (response.ok) {
+        const similarImages = await response.json();
+        displaySearchResults(similarImages);
+      } else {
+        throw new Error('Failed to search for similar images');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('An error occurred while searching for similar images. Please try again.', 'error');
+      searchResults.classList.add('hidden');
+    } finally {
+      loadingResults.classList.add('hidden');
+      searchButton.disabled = false;
+      searchButton.innerHTML = originalButtonContent;
+    }
   });
+
+  // Function to display search results
+  function displaySearchResults(similarImages) {
+    console.log('Displaying search results:', similarImages);
+    const resultsContainer = document.getElementById('results-container');
+    resultsContainer.innerHTML = ''; // Clear existing results
+
+    if (similarImages.length === 0) {
+      resultsContainer.innerHTML = `
+        <div class="text-center py-16">
+          <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mx-auto">
+            <i class="ri-search-line text-2xl text-gray-400"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No similar images found</h3>
+          <p class="text-gray-500">Try uploading a different image to find matches in your collection.</p>
+        </div>
+      `;
+    } else {
+      // Split results into top 3 and others
+      const topResults = similarImages.slice(0, 3);
+      const otherResults = similarImages.slice(3);
+
+      let resultsHTML = '';
+
+      // Top Results Section
+      if (topResults.length > 0) {
+        resultsHTML += `
+          <div class="mb-8">
+            <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="ri-trophy-line text-yellow-500"></i>
+              Top Matches
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        `;
+
+        topResults.forEach((image, index) => {
+          const similarityPercentage = Math.round(image.similarity * 100);
+          const badgeColor = getBadgeColor(similarityPercentage);
+          const rankIcon = index === 0 ? 'ri-medal-line' : index === 1 ? 'ri-award-line' : 'ri-star-line';
+
+          resultsHTML += `
+            <div class="group overflow-hidden rounded-xl border-2 ${badgeColor.border} bg-white shadow-lg transition-all hover:shadow-xl hover:scale-105">
+              <div class="relative aspect-square bg-gray-100">
+                <img src="${image.file_url}" alt="${image.file_name}" class="h-full w-full object-cover">
+                
+                <!-- Rank badge -->
+                <div class="absolute top-3 left-3 flex items-center gap-2 ${badgeColor.bg} px-3 py-2 rounded-full shadow-lg">
+                  <i class="${rankIcon} text-white text-sm"></i>
+                  <span class="text-white font-bold text-sm">${similarityPercentage}%</span>
+                </div>
+                
+                <!-- Rank number -->
+                <div class="absolute top-3 right-3 flex items-center justify-center w-8 h-8 bg-white/90 rounded-full shadow-md">
+                  <span class="font-bold text-gray-700">#${index + 1}</span>
+                </div>
+                
+                <!-- Hover actions -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 bg-black bg-opacity-40 transition-opacity group-hover:opacity-100">
+                  <div class="flex gap-3">
+                    <a href="${image.file_url}" download
+                      class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100 shadow-lg"
+                      title="Download">
+                      <i class="ri-download-line text-lg"></i>
+                    </a>
+                    <button
+                      class="copy-link flex h-11 w-11 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100 shadow-lg"
+                      data-url="${image.file_url}"
+                      title="Copy link">
+                      <i class="ri-link-m text-lg"></i>
+                    </button>
+                    <button
+                      class="star-toggle flex h-11 w-11 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100 shadow-lg"
+                      data-id="${image.id}"
+                      title="Star this file">
+                      <i class="ri-star-line text-lg"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="p-4">
+                <h3 class="font-semibold text-gray-900 mb-2 truncate">${image.file_name}</h3>
+                <div class="flex items-center justify-between text-sm text-gray-600">
+                  <span class="font-medium">${image.file_size}</span>
+                  <span>${new Date(image.share_time).toLocaleDateString()}</span>
+                </div>
+                <div class="mt-3">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-medium text-gray-700">Similarity</span>
+                    <span class="text-xs font-bold ${badgeColor.text}">${similarityPercentage}%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="${badgeColor.bg} h-2 rounded-full transition-all" style="width: ${similarityPercentage}%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        resultsHTML += `
+            </div>
+          </div>
+        `;
+      }
+
+      // Other Results Section
+      if (otherResults.length > 0) {
+        resultsHTML += `
+          <div class="mb-8">
+            <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="ri-grid-line text-gray-500"></i>
+              Other Matches (${otherResults.length})
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        `;
+
+        otherResults.forEach((image, index) => {
+          const similarityPercentage = Math.round(image.similarity * 100);
+          const badgeColor = getBadgeColor(similarityPercentage);
+
+          resultsHTML += `
+            <div class="group overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md hover:scale-105">
+              <div class="relative aspect-square bg-gray-100">
+                <img src="${image.file_url}" alt="${image.file_name}" class="h-full w-full object-cover">
+                
+                <!-- Similarity badge -->
+                <div class="absolute top-2 left-2 ${badgeColor.bg} px-2 py-1 rounded-full shadow-md">
+                  <span class="text-white font-bold text-xs">${similarityPercentage}%</span>
+                </div>
+                
+                <!-- Hover actions -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 bg-black bg-opacity-30 transition-opacity group-hover:opacity-100">
+                  <div class="flex gap-2">
+                    <a href="${image.file_url}" download
+                      class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100"
+                      title="Download">
+                      <i class="ri-download-line text-sm"></i>
+                    </a>
+                    <button
+                      class="copy-link flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100"
+                      data-url="${image.file_url}"
+                      title="Copy link">
+                      <i class="ri-link-m text-sm"></i>
+                    </button>
+                    <button
+                      class="star-toggle flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100"
+                      data-id="${image.id}"
+                      title="Star this file">
+                      <i class="ri-star-line text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="p-3">
+                <h4 class="font-medium text-gray-900 text-sm truncate mb-1">${image.file_name}</h4>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <span>${image.file_size}</span>
+                  <span class="font-bold ${badgeColor.text}">${similarityPercentage}%</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        resultsHTML += `
+            </div>
+          </div>
+        `;
+      }
+
+      resultsContainer.innerHTML = resultsHTML;
+
+      // Add event listeners to the new elements
+      addEventListenersToResults();
+    }
+
+    // Show the results container
+    resultsContainer.classList.remove('hidden');
+  }
+
+  // Function to get badge colors based on similarity percentage
+  function getBadgeColor(percentage) {
+    if (percentage >= 90) {
+      return {
+        bg: 'bg-emerald-500',
+        text: 'text-emerald-600',
+        border: 'border-emerald-200'
+      };
+    } else if (percentage >= 75) {
+      return {
+        bg: 'bg-green-500',
+        text: 'text-green-600',
+        border: 'border-green-200'
+      };
+    } else if (percentage >= 60) {
+      return {
+        bg: 'bg-yellow-500',
+        text: 'text-yellow-600',
+        border: 'border-yellow-200'
+      };
+    } else if (percentage >= 45) {
+      return {
+        bg: 'bg-orange-500',
+        text: 'text-orange-600',
+        border: 'border-orange-200'
+      };
+    } else {
+      return {
+        bg: 'bg-red-500',
+        text: 'text-red-600',
+        border: 'border-red-200'
+      };
+    }
+  }
+
+  // Function to add event listeners to newly created result elements
+  function addEventListenersToResults() {
+    // Copy link functionality
+    document.querySelectorAll('.copy-link').forEach(button => {
+      button.addEventListener('click', function () {
+        const url = window.location.host + this.dataset.url;
+        navigator.clipboard.writeText(url).then(() => {
+          showNotification('Link copied to clipboard!', 'success');
+        }).catch(() => {
+          showNotification('Failed to copy link', 'error');
+        });
+      });
+    });
+
+    // Star toggle functionality
+    document.querySelectorAll('.star-toggle').forEach(button => {
+      button.addEventListener('click', async function () {
+        const fileId = this.dataset.id;
+        const icon = this.querySelector('i');
+
+        try {
+          const response = await fetch(`/api/starred-files/${fileId}/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.starred) {
+              icon.classList.remove('ri-star-line');
+              icon.classList.add('ri-star-fill', 'text-yellow-500');
+              this.title = 'Remove from starred';
+            }
+            showNotification(data.message, 'success');
+          } else {
+            throw new Error('Failed to star file');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('Failed to star file', 'error');
+        }
+      });
+    });
+  }
+
+  // Notification function
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-md flex items-center gap-2 transform translate-x-full transition-transform duration-300`;
+
+    // Style based on type
+    switch (type) {
+      case 'success':
+        notification.classList.add('bg-green-100', 'border-l-4', 'border-green-500', 'text-green-700');
+        notification.innerHTML = `<i class="ri-check-line"></i>`;
+        break;
+      case 'error':
+        notification.classList.add('bg-red-100', 'border-l-4', 'border-red-500', 'text-red-700');
+        notification.innerHTML = `<i class="ri-error-warning-line"></i>`;
+        break;
+      default:
+        notification.classList.add('bg-blue-100', 'border-l-4', 'border-blue-500', 'text-blue-700');
+        notification.innerHTML = `<i class="ri-information-line"></i>`;
+    }
+
+    // Add message
+    notification.innerHTML += `<span>${message}</span>`;
+
+    // Add to body
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+      notification.classList.remove('translate-x-full');
+    }, 10);
+
+    // Remove after delay
+    setTimeout(() => {
+      notification.classList.add('translate-x-full');
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 3000);
+  }
 </script>
 {% endblock %}
