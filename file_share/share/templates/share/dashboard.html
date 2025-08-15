@@ -338,10 +338,11 @@
             </div>
           `;
 
+          // Get parent element and replace only the button
           const parentDiv = this.parentElement;
-          parentDiv.innerHTML = descriptionHTML;
+          this.outerHTML = descriptionHTML;
 
-          // Add event listener to the new expand button
+          // Find the newly created expand button and add event listener
           const newBtn = parentDiv.querySelector('.expand-description');
           newBtn.addEventListener('click', function () {
             const container = this.closest('.description-container');

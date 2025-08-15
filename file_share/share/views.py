@@ -18,6 +18,7 @@ from django.conf import settings
 from django.conf import settings
 from django.db import models
 import os
+import uuid
 
 
 # Template views :
@@ -70,18 +71,6 @@ def upload_file_view(request):
                 file_type=file_type,
                 share_type='private'  # Default to private
             )
-
-            # Generate description for images
-            if file_type in ['png', 'jpg', 'jpeg', 'webp', 'gif']:
-                try:
-                    # Use the file path directly instead of URL
-                    file_path = str(shared_file.file)  # This gives us the relative path like 'uploads/filename.jpg'
-                    
-                    image_tags = generate_tag(file_path)
-                    shared_file.file_description = image_tags
-                    shared_file.save()
-                except Exception as e:
-                    print(f"Error generating image description: {e}")
 
             return redirect('dashboard')
         except Exception as e:
@@ -297,25 +286,6 @@ class SharedFileView(APIView):
                 # Save the file
                 file_obj = serializer.save()
                 
-                # Generate description for images
-                image_url = None
-                if uploaded_file and file_type in ['png', 'jpg', 'jpeg', 'webp', 'gif']:
-                    image_url = file_obj.get_file_url()
-                elif file_url and file_type in ['png', 'jpg', 'jpeg', 'webp', 'gif']:
-                    image_url = file_url
-                    
-                if image_url:
-                    try:
-                        # Use the file path directly instead of URL
-                        file_path = str(file_obj.file)  # This gives us the relative path like 'uploads/filename.jpg'
-                            
-                        image_tags = generate_tag(file_path)
-                        file_obj.file_description = image_tags
-                        file_obj.save()
-                    except Exception as e:
-                        # Continue without description if generation fails
-                        print(f"Error generating image description: {e}")
-
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -446,8 +416,16 @@ class SimilarImagesView(APIView):
         elif query_image_url.startswith('/protected-media/uploads/'):
             query_image_filename = query_image_url.replace('/protected-media/uploads/', '')
             query_image_path = os.path.join(settings.MEDIA_ROOT, 'uploads', query_image_filename)
+        elif query_image_url.startswith('/media/temp/'):
+            # Handle temporary files
+            query_image_filename = query_image_url.replace('/media/temp/', '')
+            query_image_path = os.path.join(settings.MEDIA_ROOT, 'temp', query_image_filename)
         else:
-            return Response({'error': 'Invalid image URL format'}, status=status.HTTP_400_BAD_REQUEST)
+            # Check if it's a direct file path (for temporary uploads)
+            if os.path.exists(query_image_url):
+                query_image_path = query_image_url
+            else:
+                return Response({'error': 'Invalid image URL format'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if query image file exists
         if not os.path.exists(query_image_path):
@@ -528,3 +506,57 @@ class StarredFileView(APIView):
             return Response({'error': 'File not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TemporaryImageUploadView(APIView):
+    """
+    Temporary image upload for search purposes - doesn't save to database
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            if 'file' not in request.FILES:
+                return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            uploaded_file = request.FILES['file']
+            
+            # Validate file type
+            if not uploaded_file.content_type.startswith('image/'):
+                return Response({'error': 'Only image files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create temp directory if it doesn't exist
+            temp_dir = os.path.join(settings.MEDIA_ROOT, 'temp')
+            os.makedirs(temp_dir, exist_ok=True)
+            
+            # Generate unique filename
+            import uuid
+            file_extension = uploaded_file.name.split('.')[-1]
+            temp_filename = f"search_{uuid.uuid4()}.{file_extension}"
+            temp_file_path = os.path.join(temp_dir, temp_filename)
+            
+            # Save file temporarily
+            with open(temp_file_path, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+            
+            # Return the temp file path for search
+            return Response({
+                'temp_file_path': temp_file_path,
+                'temp_file_url': f'/media/temp/{temp_filename}',
+                'message': 'File uploaded temporarily for search'
+            })
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def delete(self, request):
+        """Delete temporary file"""
+        try:
+            file_path = request.data.get('file_path')
+            if file_path and os.path.exists(file_path):
+                os.remove(file_path)
+                return Response({'message': 'Temporary file cleaned up'})
+            return Response({'message': 'File not found or already cleaned up'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

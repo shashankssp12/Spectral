@@ -177,17 +177,13 @@
     }
   });
 
-  // Function to upload image and get a URL for it
+  // Function to upload image temporarily (not saved to database)
   async function uploadImage(file) {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('share_type', 'private');  // Set as private by default
-    formData.append('share_expiry', new Date(Date.now() + 86400000).toISOString());  // 24 hours from now
-    formData.append('file_type', file.type.split('/')[1]);
-    formData.append('shared_to', JSON.stringify([]));  // No specific users to share with
 
     try {
-      const response = await fetch('/api/shared-files/', {
+      const response = await fetch('/temp-upload/', {
         method: 'POST',
         headers: {
           'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
@@ -197,19 +193,42 @@
 
       if (response.ok) {
         const data = await response.json();
-        // Set the URL for the image search
-        imageUrlInput.value = data.file;
+        // Set the temp file path for the image search
+        imageUrlInput.value = data.temp_file_path;
       } else {
-        alert('Failed to upload image. Please try again.');
+        alert('Failed to upload image for search. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('An error occurred. Please try again.');
+      alert('An error occurred while preparing the image for search. Please try again.');
+    }
+  }
+
+  // Function to cleanup temporary file
+  async function cleanupTempFile(filePath) {
+    if (!filePath) return;
+    
+    try {
+      await fetch('/temp-upload/', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify({ file_path: filePath })
+      });
+    } catch (error) {
+      console.log('Cleanup error (non-critical):', error);
     }
   }
 
   // Remove image
   removeImageButton.addEventListener('click', function () {
+    // Cleanup temp file if exists
+    if (imageUrlInput.value) {
+      cleanupTempFile(imageUrlInput.value);
+    }
+    
     imagePreviewContainer.classList.add('hidden');
     imageSearchArea.classList.remove('hidden');
     searchResults.classList.add('hidden');
@@ -294,6 +313,11 @@
       if (response.ok) {
         const similarImages = await response.json();
         displaySearchResults(similarImages);
+        
+        // Cleanup temp file after successful search
+        if (imageUrlInput.value) {
+          cleanupTempFile(imageUrlInput.value);
+        }
       } else {
         throw new Error('Failed to search for similar images');
       }
