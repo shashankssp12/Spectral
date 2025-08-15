@@ -84,7 +84,14 @@ class SharedFile(models.Model):
     def get_file_url(self):
         """Return the appropriate file URL (uploaded file or external URL)"""
         if self.file:
-            return self.file.url
+            # Return protected URL for uploaded files
+            return f'/protected-media/{self.file.name}'
+        return self.file_url
+    
+    def get_protected_url(self):
+        """Return the protected URL for the file"""
+        if self.file:
+            return f'/protected-media/{self.file.name}'
         return self.file_url
 
     def __str__(self):

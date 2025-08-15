@@ -8,10 +8,13 @@ from .models import SharedFile
 from .desc_generator import generate_tag
 from .similar_img import search_similar_images
 # added while creating template views:
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.http import HttpResponse, Http404, FileResponse
+from django.conf import settings
+import os
 
 
 # Template views :
@@ -117,6 +120,59 @@ def image_search_view(request):
 def logout_view(request):
     logout(request)
     return redirect('index')
+
+
+def protected_media(request, file_path):
+    """
+    Serve media files with permission checking
+    """
+    # Get the file from database
+    try:
+        # Try to find the file by matching the file path
+        shared_file = SharedFile.objects.filter(file__icontains=file_path).first()
+        
+        if not shared_file:
+            # Try to find by exact file name
+            filename = os.path.basename(file_path)
+            shared_file = SharedFile.objects.filter(file__icontains=filename).first()
+        
+        if not shared_file:
+            raise Http404("File not found in database")
+        
+        # Check permissions
+        if shared_file.share_type == 'public':
+            # Public files can be accessed by anyone
+            pass
+        elif shared_file.share_type == 'private':
+            # Private files require authentication and ownership
+            if not request.user.is_authenticated:
+                return HttpResponse('Unauthorized - Please log in to view this file', status=401)
+            
+            # Check if user owns the file or is in shared_to list
+            if (shared_file.shared_by != request.user and 
+                request.user.email not in shared_file.shared_to):
+                return HttpResponse('Forbidden - You do not have permission to view this file', status=403)
+        
+        # Serve the file
+        file_full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+        if os.path.exists(file_full_path):
+            # Determine content type based on file extension
+            import mimetypes
+            content_type, _ = mimetypes.guess_type(file_full_path)
+            if not content_type:
+                content_type = 'application/octet-stream'
+            
+            return FileResponse(
+                open(file_full_path, 'rb'),
+                content_type=content_type,
+                filename=os.path.basename(file_path)
+            )
+        else:
+            raise Http404("Physical file not found")
+            
+    except Exception as e:
+        print(f"Error in protected_media: {e}")
+        return HttpResponse(f'Error: {str(e)}', status=500)
 
 
 #-- Existing code - REST API views --
