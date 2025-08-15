@@ -4,6 +4,39 @@
 {% block dashboard_title %}Dashboard{% endblock dashboard_title %}
 
 {% block dashboard_content %}
+<!-- Search status and mobile search -->
+{% if current_search %}
+<div class="mb-4 flex items-center justify-between rounded-lg bg-blue-50 p-4">
+  <div class="flex items-center gap-2">
+    <i class="ri-search-line text-blue-600"></i>
+    <span class="text-sm text-blue-800">
+      Showing results for "<strong>{{ current_search }}</strong>"
+      {% if shared_files|length == 0 %}
+      - No files found
+      {% else %}
+      - {{ shared_files|length }} file{{ shared_files|length|pluralize }} found
+      {% endif %}
+    </span>
+  </div>
+  <a href="{% url 'dashboard' %}{% if current_type and current_type != 'all' %}?type={{ current_type }}{% endif %}"
+    class="text-sm text-blue-600 hover:text-blue-800">
+    <i class="ri-close-line"></i> Clear search
+  </a>
+</div>
+{% endif %}
+
+<!-- Mobile search form -->
+<div class="mb-4 md:hidden">
+  <form method="GET" action="{% url 'dashboard' %}" class="relative">
+    <i class="ri-search-line absolute left-2.5 top-2.5 text-gray-400"></i>
+    <input type="search" name="search" placeholder="Search files..." value="{{ current_search|default:'' }}"
+      class="w-full rounded-md border border-gray-300 py-2 pl-8 pr-3 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
+    {% if current_type and current_type != 'all' %}
+    <input type="hidden" name="type" value="{{ current_type }}">
+    {% endif %}
+  </form>
+</div>
+
 <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
   <h1 class="text-3xl font-bold tracking-tight">My Files</h1>
   <div class="flex gap-2">
@@ -24,19 +57,19 @@
   <div class="border-b">
     <ul class="flex flex-wrap -mb-px">
       <li class="mr-2">
-        <a href="{% url 'dashboard' %}"
+        <a href="{% url 'dashboard' %}{% if current_search %}?search={{ current_search }}{% endif %}"
           class="inline-block border-b-2 {% if not request.GET.type or request.GET.type == 'all' %}border-purple-600 text-purple-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} py-2 px-4 text-sm font-medium">All</a>
       </li>
       <li class="mr-2">
-        <a href="{% url 'dashboard' %}?type=images"
+        <a href="{% url 'dashboard' %}?type=images{% if current_search %}&search={{ current_search }}{% endif %}"
           class="inline-block border-b-2 {% if request.GET.type == 'images' %}border-purple-600 text-purple-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} py-2 px-4 text-sm font-medium">Images</a>
       </li>
       <li class="mr-2">
-        <a href="{% url 'dashboard' %}?type=videos"
+        <a href="{% url 'dashboard' %}?type=videos{% if current_search %}&search={{ current_search }}{% endif %}"
           class="inline-block border-b-2 {% if request.GET.type == 'videos' %}border-purple-600 text-purple-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} py-2 px-4 text-sm font-medium">Videos</a>
       </li>
       <li class="mr-2">
-        <a href="{% url 'dashboard' %}?type=documents"
+        <a href="{% url 'dashboard' %}?type=documents{% if current_search %}&search={{ current_search }}{% endif %}"
           class="inline-block border-b-2 {% if request.GET.type == 'documents' %}border-purple-600 text-purple-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} py-2 px-4 text-sm font-medium">Documents</a>
       </li>
     </ul>

@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import HttpResponse, Http404, FileResponse
 from django.conf import settings
+from django.db import models
 import os
 
 
@@ -95,11 +96,19 @@ def upload_file_view(request):
 
 @login_required
 def dashboard_view(request):
-    # Get file type filter from query params
+    # Get file type filter and search query from query params
     file_type = request.GET.get('type', 'all')
+    search_query = request.GET.get('search', '').strip()
     
     # Get all files for the current user
     shared_files = request.user.sharedfile_set.all()
+    
+    # Apply search filter if provided
+    if search_query:
+        # Search in file names, descriptions, and file types using case-insensitive contains
+        shared_files = shared_files.filter(
+            models.Q(file_name__icontains=search_query)
+        )
     
     # Apply file type filter if specified
     if file_type != 'all':
@@ -111,7 +120,16 @@ def dashboard_view(request):
             # Exclude images and videos
             shared_files = shared_files.exclude(file_type__in=['png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov', 'avi'])
     
-    return render(request, 'share/dashboard.html', {'shared_files': shared_files})
+    # Order by most recent first
+    shared_files = shared_files.order_by('-share_time')
+    
+    context = {
+        'shared_files': shared_files,
+        'current_search': search_query,
+        'current_type': file_type
+    }
+    
+    return render(request, 'share/dashboard.html', context)
 
 @login_required
 def image_search_view(request):

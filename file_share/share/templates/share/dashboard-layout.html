@@ -19,11 +19,16 @@
       </a>
 
       <div class="ml-auto flex items-center gap-2">
-        <div class="relative hidden md:block">
+        <form method="GET" action="{% url 'dashboard' %}" class="relative hidden md:block">
           <i class="ri-search-line absolute left-2.5 top-2.5 text-gray-400"></i>
-          <input type="search" placeholder="Search files..."
+          <input type="search" name="search" placeholder="Search files... (Ctrl+K)"
+            value="{{ current_search|default:'' }}"
             class="w-[200px] rounded-md border border-gray-300 py-2 pl-8 pr-3 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 lg:w-[300px]">
-        </div>
+          <!-- Preserve current filter when searching -->
+          {% if current_type and current_type != 'all' %}
+          <input type="hidden" name="type" value="{{ current_type }}">
+          {% endif %}
+        </form>
 
         <button class="ml-2 rounded-md p-2 text-gray-500 hover:bg-gray-100">
           <i class="ri-notification-line text-xl"></i>
@@ -368,6 +373,36 @@
       });
     }
   }
+
+  // Search functionality
+  document.addEventListener('DOMContentLoaded', function () {
+    // Keyboard shortcut for search (Ctrl+K or Cmd+K)
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      }
+    });
+
+    // Auto-submit search after 500ms of no typing (debounce)
+    const searchInputs = document.querySelectorAll('input[name="search"]');
+    searchInputs.forEach(input => {
+      let searchTimeout;
+      input.addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          // Only auto-submit if there's a search query or if clearing
+          if (this.value.length >= 2 || this.value.length === 0) {
+            this.form.submit();
+          }
+        }, 500);
+      });
+    });
+  });
 </script>
 {% endblock dashboard_js %}
 {% endblock content %}
