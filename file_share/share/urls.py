@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     UserRegistrationView, UserProfileView, SharedFileView, SharedFileDetailView, SimilarImagesView,
     # New template views
-    index_view, login_view, signup_view, logout_view, dashboard_view, image_search_view
+    index_view, login_view, signup_view, logout_view, dashboard_view, image_search_view, upload_file_view
 )
 
 urlpatterns = [
@@ -22,5 +22,6 @@ urlpatterns = [
     path('accounts/logout/', logout_view, name='logout'),
     path('accounts/signup/', signup_view, name='signup'),
     path('dashboard/', dashboard_view, name='dashboard'),
+    path('upload/', upload_file_view, name='upload_file'),
     path('image-search/', image_search_view, name='image_search'),
 ]

@@ -51,15 +51,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 class SharedFile(models.Model):
-    file = models.CharField(max_length=255)
+    file = models.FileField(upload_to='uploads/', blank=True, null=True)
+    file_url = models.CharField(max_length=255, blank=True, null=True)  # For external URLs
     file_name = models.CharField(max_length=255)
     file_size = models.CharField(max_length=50, blank=True)
     shared_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     share_type = models.CharField(max_length=50)
     share_time = models.DateTimeField(default=timezone.now)
-    share_expiry = models.DateTimeField()
+    share_expiry = models.DateTimeField(blank=True, null=True)
     file_type = models.CharField(max_length=50)
-    shared_to = models.JSONField()
+    shared_to = models.JSONField(default=list)
     file_description = models.TextField(blank=True, null=True)
 
     feature_vector = models.BinaryField(
@@ -80,5 +81,11 @@ class SharedFile(models.Model):
     def get_feature_vector(self):
         return pickle.loads(self.feature_vector) if self.feature_vector else None
 
+    def get_file_url(self):
+        """Return the appropriate file URL (uploaded file or external URL)"""
+        if self.file:
+            return self.file.url
+        return self.file_url
+
     def __str__(self):
-        return self.file
+        return self.file_name

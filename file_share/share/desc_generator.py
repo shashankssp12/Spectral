@@ -15,8 +15,7 @@ def generate_tag(image_url):
           raise ValueError(f"Failed to download image from URL. Status code: {response.status_code}")
 
   image_b64 = get_base64_from_url(image_url)
-
-  assert len(image_b64) < 180_000, \
+  assert len(image_b64) < 200000, \
     "To upload larger images, use the assets API (see docs)"
 
   headers = {

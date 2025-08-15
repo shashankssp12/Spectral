@@ -197,7 +197,7 @@
       </div>
     </div>
 
-    <form id="upload-form" method="post" action="{% url 'shared_files' %}" enctype="multipart/form-data">
+    <form id="upload-form" method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="p-4">
         <div id="drop-area"
