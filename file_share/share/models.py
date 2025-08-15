@@ -94,5 +94,42 @@ class SharedFile(models.Model):
             return f'/protected-media/{self.file.name}'
         return self.file_url
 
+    def is_starred_by(self, user):
+        """Check if this file is starred by the given user"""
+        return StarredFile.objects.filter(user=user, file=self).exists()
+
     def __str__(self):
         return self.file_name
+
+
+class TrashLog(models.Model):
+    """Log of deleted files - stores metadata but not actual files"""
+    file_name = models.CharField(max_length=255)
+    file_size = models.CharField(max_length=50, blank=True)
+    file_type = models.CharField(max_length=50)
+    original_share_type = models.CharField(max_length=50)
+    original_share_time = models.DateTimeField()
+    deleted_at = models.DateTimeField(default=timezone.now)
+    file_description = models.TextField(blank=True, null=True)
+    original_file_id = models.IntegerField()  # ID of the original SharedFile
+    deleted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Deleted: {self.file_name}"
+
+    class Meta:
+        ordering = ['-deleted_at']
+
+
+class StarredFile(models.Model):
+    """Track starred files for users"""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    file = models.ForeignKey(SharedFile, on_delete=models.CASCADE)
+    starred_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('user', 'file')
+        ordering = ['-starred_at']
+
+    def __str__(self):
+        return f"{self.user.email} starred {self.file.file_name}"

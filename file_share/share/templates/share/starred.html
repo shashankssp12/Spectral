@@ -1,0 +1,256 @@
+{% extends 'share/dashboard-layout.html' %}
+{% load static %}
+
+{% block dashboard_title %}Starred Files{% endblock dashboard_title %}
+
+{% block dashboard_content %}
+<div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+  <h1 class="text-3xl font-bold tracking-tight">
+    <i class="ri-star-fill text-yellow-500 mr-2"></i>
+    Starred Files
+  </h1>
+  <div class="flex gap-2">
+    <a href="{% url 'dashboard' %}"
+      class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+      <i class="ri-arrow-left-line"></i>
+      Back to All Files
+    </a>
+  </div>
+</div>
+
+<!-- File Grid -->
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+  {% if shared_files %}
+  {% for file in shared_files %}
+  <!-- File Card -->
+  <div class="group file-card rounded-lg border bg-white shadow-sm transition-all hover:shadow-md">
+    <div class="relative aspect-square bg-gray-100 overflow-hidden rounded-t-lg">
+      {% if file.file_type|lower in 'png,jpg,jpeg,webp,gif' %}
+      <img src="{{ file.get_file_url }}" alt="{{ file.file_name }}" class="h-full w-full object-cover">
+      {% elif file.file_type|lower in 'mp4,webm,mov,avi' %}
+      <div class="flex h-full w-full items-center justify-center bg-gray-800">
+        <i class="ri-video-line text-5xl text-gray-400"></i>
+      </div>
+      {% elif file.file_type|lower in 'mp3,wav,ogg' %}
+      <div class="flex h-full w-full items-center justify-center bg-gray-800">
+        <i class="ri-music-line text-5xl text-gray-400"></i>
+      </div>
+      {% else %}
+      <div class="flex h-full w-full items-center justify-center">
+        <i class="ri-file-text-line text-5xl text-gray-400"></i>
+      </div>
+      {% endif %}
+
+      <!-- Star indicator -->
+      <div class="absolute top-2 right-2">
+        <i class="ri-star-fill text-yellow-500 text-xl"></i>
+      </div>
+
+      <!-- Hover actions -->
+      <div
+        class="absolute inset-0 flex items-center justify-center opacity-0 bg-black bg-opacity-30 transition-opacity group-hover:opacity-100">
+        <div class="flex gap-2">
+          <a href="{{ file.get_file_url }}" download
+            class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100">
+            <i class="ri-download-line"></i>
+          </a>
+          <button
+            class="copy-link flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100"
+            data-url="{{ file.get_file_url }}">
+            <i class="ri-link-m"></i>
+          </button>
+          <button
+            class="toggle-star flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100"
+            data-id="{{ file.id }}" data-starred="true"
+            title="Remove from starred">
+            <i class="ri-star-fill text-yellow-500"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4">
+      <div class="mb-2 flex items-start justify-between">
+        <div class="truncate">
+          <h3 class="truncate font-medium">{{ file.file_name }}</h3>
+          <p class="text-xs text-gray-500">{{ file.file_size }}</p>
+        </div>
+        <div class="relative">
+          <button class="file-menu-btn rounded-md p-1 text-gray-500 hover:bg-gray-100">
+            <i class="ri-more-2-fill"></i>
+          </button>
+          <div class="file-menu absolute right-0 mt-1 hidden w-48 rounded-md border bg-white shadow-lg z-50">
+            <button class="copy-link w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              data-url="{{ file.get_file_url }}">
+              <i class="ri-clipboard-line"></i> Copy link
+            </button>
+            <a href="{{ file.get_file_url }}" download
+              class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <i class="ri-download-line"></i> Download
+            </a>
+            <div class="border-t"></div>
+            <button class="delete-file w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              data-id="{{ file.id }}">
+              <i class="ri-delete-bin-line"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {% if file.file_description %}
+      <div class="description-container">
+        <div class="description-clamp relative overflow-hidden transition-all" style="max-height: 3rem;">
+          <div class="mt-2 text-xs text-gray-500 description-text">
+            <p>{{ file.file_description }}</p>
+          </div>
+          <div class="fade absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+        </div>
+        <button class="expand-description text-xs text-purple-600 hover:underline mt-1 w-full text-left">Show
+          more</button>
+      </div>
+      {% else %}
+      <button
+        class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-1 text-xs hover:bg-gray-50 generate-description"
+        data-id="{{ file.id }}">
+        Generate AI Description
+      </button>
+      {% endif %}
+    </div>
+
+    <div class="flex items-center justify-between border-t bg-gray-50 px-4 py-2">
+      <span class="text-xs text-gray-500">
+        Modified {{ file.share_time|date:"m/d/Y" }}
+      </span>
+      <span data-status-icon
+        class="rounded-full p-1 {% if file.share_type == 'public' %}text-purple-600{% else %}text-gray-500{% endif %}">
+        <i class="{% if file.share_type == 'public' %}ri-global-line{% else %}ri-lock-line{% endif %} text-sm"></i>
+      </span>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+    <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
+      <i class="ri-star-line text-2xl text-yellow-600"></i>
+    </div>
+    <h2 class="mb-2 text-lg font-medium">No starred files yet</h2>
+    <p class="mb-4 text-sm text-gray-500">Star some files to see them here</p>
+    <a href="{% url 'dashboard' %}"
+      class="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
+      <i class="ri-arrow-left-line"></i>
+      Go to All Files
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Notification container (for success/error messages) -->
+<div id="notification-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+{{ block.super }}
+<script>
+  // Copy link functionality
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.copy-link')) {
+      e.preventDefault();
+      const button = e.target.closest('.copy-link');
+      const url = button.dataset.url;
+      navigator.clipboard.writeText(url).then(() => {
+        showNotification('Link copied to clipboard!', 'success');
+      });
+    }
+  });
+
+  // Star toggle functionality
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.toggle-star')) {
+      e.preventDefault();
+      const button = e.target.closest('.toggle-star');
+      const fileId = button.dataset.id;
+      const isStarred = button.dataset.starred === 'true';
+      
+      fetch(`/api/starred-files/${fileId}/`, {
+        method: isStarred ? 'DELETE' : 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // In starred view, if we unstar, remove the file card
+          if (isStarred) {
+            const fileCard = button.closest('.bg-white');
+            fileCard.remove();
+            showNotification('File removed from starred', 'success');
+            
+            // Check if no files left and show empty state
+            const remainingCards = document.querySelectorAll('.bg-white.rounded-lg');
+            if (remainingCards.length === 0) {
+              location.reload(); // Reload to show empty state
+            }
+          }
+        } else {
+          showNotification(data.message || 'Error updating star status', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error updating star status', 'error');
+      });
+    }
+  });
+
+  // Notification system
+  function showNotification(message, type = 'info') {
+    const container = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    notification.className = `
+      flex items-center gap-3 rounded-lg px-4 py-3 shadow-lg transition-all duration-300 transform translate-x-full
+      ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 
+        type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' : 
+        'bg-blue-50 text-blue-800 border border-blue-200'}
+    `;
+    
+    notification.innerHTML = `
+      <i class="${type === 'success' ? 'ri-check-line' : type === 'error' ? 'ri-error-warning-line' : 'ri-information-line'}"></i>
+      <span class="text-sm font-medium">${message}</span>
+      <button class="ml-auto" onclick="this.parentElement.remove()">
+        <i class="ri-close-line"></i>
+      </button>
+    `;
+    
+    container.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+      notification.classList.add('translate-x-full');
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // Get CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+{% endblock dashboard_js %}

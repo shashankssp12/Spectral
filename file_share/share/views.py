@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserRegistrationSerializer, UserProfileSerializer, SharedFileSerializer
-from .models import SharedFile
+from .models import SharedFile, TrashLog, StarredFile
 from .desc_generator import generate_tag
 from .similar_img import search_similar_images
 # added while creating template views:
@@ -72,15 +72,10 @@ def upload_file_view(request):
             # Generate description for images
             if file_type in ['png', 'jpg', 'jpeg', 'webp', 'gif']:
                 try:
-                    # Build full URL for the image
-                    file_url = shared_file.get_file_url()
-                    if file_url.startswith('/'):
-                        # Convert relative URL to absolute URL
-                        full_url = request.build_absolute_uri(file_url)
-                    else:
-                        full_url = file_url
+                    # Use the file path directly instead of URL
+                    file_path = str(shared_file.file)  # This gives us the relative path like 'uploads/filename.jpg'
                     
-                    image_tags = generate_tag(full_url)
+                    image_tags = generate_tag(file_path)
                     shared_file.file_description = image_tags
                     shared_file.save()
                 except Exception as e:
@@ -123,6 +118,10 @@ def dashboard_view(request):
     # Order by most recent first
     shared_files = shared_files.order_by('-share_time')
     
+    # Add starred status to each file
+    for file in shared_files:
+        file.is_starred = file.is_starred_by(request.user)
+    
     context = {
         'shared_files': shared_files,
         'current_search': search_query,
@@ -134,6 +133,39 @@ def dashboard_view(request):
 @login_required
 def image_search_view(request):
     return render(request, 'share/image-search.html')
+
+@login_required
+def starred_view(request):
+    """View for showing only starred files"""
+    # Get all starred files for the current user
+    starred_files = StarredFile.objects.filter(user=request.user).select_related('file')
+    
+    # Extract the actual SharedFile objects and mark them as starred
+    shared_files = []
+    for starred in starred_files:
+        file = starred.file
+        file.is_starred = True  # All files in this view are starred
+        shared_files.append(file)
+    
+    context = {
+        'shared_files': shared_files,
+        'page_title': 'Starred Files'
+    }
+    
+    return render(request, 'share/starred.html', context)
+
+@login_required
+def trash_view(request):
+    """View for showing deleted files log"""
+    # Get all trash logs for the current user
+    trash_logs = TrashLog.objects.filter(deleted_by=request.user)
+    
+    context = {
+        'trash_logs': trash_logs,
+        'page_title': 'Trash'
+    }
+    
+    return render(request, 'share/trash.html', context)
 
 def logout_view(request):
     logout(request)
@@ -272,13 +304,10 @@ class SharedFileView(APIView):
                     
                 if image_url:
                     try:
-                        # Build full URL for the image if it's a relative path
-                        if image_url.startswith('/'):
-                            full_url = request.build_absolute_uri(image_url)
-                        else:
-                            full_url = image_url
+                        # Use the file path directly instead of URL
+                        file_path = str(file_obj.file)  # This gives us the relative path like 'uploads/filename.jpg'
                             
-                        image_tags = generate_tag(full_url)
+                        image_tags = generate_tag(file_path)
                         file_obj.file_description = image_tags
                         file_obj.save()
                     except Exception as e:
@@ -320,15 +349,11 @@ class SharedFileView(APIView):
             if 'generate_description' in request.data and request.data['generate_description']:
                 if shared_file.file_type.lower() in ['png', 'jpg', 'jpeg', 'webp', 'gif']:
                     try:
-                        # Build full URL for the image
-                        file_url = shared_file.get_file_url()
-                        if file_url.startswith('/'):
-                            full_url = request.build_absolute_uri(file_url)
-                        else:
-                            full_url = file_url
+                        # Use the file path directly instead of URL
+                        file_path = str(shared_file.file)  # This gives us the relative path like 'uploads/filename.jpg'
                             
                         # Generate description for image
-                        image_tags = generate_tag(full_url)
+                        image_tags = generate_tag(file_path)
                         shared_file.file_description = image_tags
                         shared_file.save()
 
@@ -360,7 +385,25 @@ class SharedFileView(APIView):
     def delete(self, request, pk):
         try:
             shared_file = request.user.sharedfile_set.get(pk=pk)
+            
+            # Create trash log before deleting
+            TrashLog.objects.create(
+                file_name=shared_file.file_name,
+                file_size=shared_file.file_size,
+                file_type=shared_file.file_type,
+                original_share_type=shared_file.share_type,
+                original_share_time=shared_file.share_time,
+                file_description=shared_file.file_description,
+                original_file_id=shared_file.id,
+                deleted_by=request.user
+            )
+            
+            # Remove any star records for this file
+            StarredFile.objects.filter(file=shared_file).delete()
+            
+            # Now delete the actual file
             shared_file.delete()
+            
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
@@ -406,3 +449,45 @@ class SimilarImagesView(APIView):
         similar_images = search_similar_images(query_image_url, image_urls)
 
         return Response(similar_images)
+
+
+class StarredFileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, file_id):
+        """Star a file"""
+        try:
+            shared_file = SharedFile.objects.get(id=file_id, shared_by=request.user)
+            
+            # Check if already starred
+            starred_file, created = StarredFile.objects.get_or_create(
+                user=request.user,
+                file=shared_file
+            )
+            
+            if created:
+                return Response({'message': 'File starred successfully', 'starred': True})
+            else:
+                return Response({'message': 'File already starred', 'starred': True})
+                
+        except SharedFile.DoesNotExist:
+            return Response({'error': 'File not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, file_id):
+        """Unstar a file"""
+        try:
+            shared_file = SharedFile.objects.get(id=file_id, shared_by=request.user)
+            
+            try:
+                starred_file = StarredFile.objects.get(user=request.user, file=shared_file)
+                starred_file.delete()
+                return Response({'message': 'File unstarred successfully', 'starred': False})
+            except StarredFile.DoesNotExist:
+                return Response({'message': 'File was not starred', 'starred': False})
+                
+        except SharedFile.DoesNotExist:
+            return Response({'error': 'File not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

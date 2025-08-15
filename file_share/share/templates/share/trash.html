@@ -1,0 +1,115 @@
+{% extends 'share/dashboard-layout.html' %}
+{% load static %}
+
+{% block dashboard_title %}Trash{% endblock dashboard_title %}
+
+{% block dashboard_content %}
+<div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+  <h1 class="text-3xl font-bold tracking-tight">
+    <i class="ri-delete-bin-line text-red-500 mr-2"></i>
+    Trash
+  </h1>
+  <div class="flex gap-2">
+    <a href="{% url 'dashboard' %}"
+      class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+      <i class="ri-arrow-left-line"></i>
+      Back to All Files
+    </a>
+  </div>
+</div>
+
+<!-- Trash Items List -->
+<div class="space-y-4">
+  {% if trash_logs %}
+  {% for log in trash_logs %}
+  <div class="rounded-lg border bg-white p-4 shadow-sm">
+    <div class="flex items-start justify-between">
+      <div class="flex items-start gap-4">
+        <!-- File Type Icon -->
+        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+          {% if log.file_type|lower in 'png,jpg,jpeg,webp,gif' %}
+          <i class="ri-image-line text-xl text-gray-600"></i>
+          {% elif log.file_type|lower in 'mp4,webm,mov,avi' %}
+          <i class="ri-video-line text-xl text-gray-600"></i>
+          {% elif log.file_type|lower in 'mp3,wav,ogg' %}
+          <i class="ri-music-line text-xl text-gray-600"></i>
+          {% elif log.file_type|lower in 'pdf' %}
+          <i class="ri-file-pdf-line text-xl text-red-600"></i>
+          {% elif log.file_type|lower in 'doc,docx' %}
+          <i class="ri-file-word-line text-xl text-blue-600"></i>
+          {% elif log.file_type|lower in 'xls,xlsx' %}
+          <i class="ri-file-excel-line text-xl text-green-600"></i>
+          {% else %}
+          <i class="ri-file-text-line text-xl text-gray-600"></i>
+          {% endif %}
+        </div>
+
+        <!-- File Details -->
+        <div class="flex-1">
+          <h3 class="font-medium text-gray-900">{{ log.file_name }}</h3>
+          <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+            <span>Size: {{ log.file_size|default:"Unknown" }}</span>
+            <span>Type: {{ log.file_type|upper }}</span>
+            <span>Was: {% if log.original_share_type == 'public' %}Public{% else %}Private{% endif %}</span>
+            <span>Originally shared: {{ log.original_share_time|date:"M d, Y" }}</span>
+          </div>
+          
+          {% if log.file_description %}
+          <div class="mt-2">
+            <p class="text-xs text-gray-600 line-clamp-2">{{ log.file_description }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Deletion Info -->
+      <div class="text-right">
+        <div class="text-sm text-gray-900">
+          Deleted {{ log.deleted_at|timesince }} ago
+        </div>
+        <div class="text-xs text-gray-500">
+          {{ log.deleted_at|date:"M d, Y \a\t g:i A" }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="flex flex-col items-center justify-center py-16 text-center">
+    <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+      <i class="ri-delete-bin-line text-2xl text-gray-400"></i>
+    </div>
+    <h2 class="mb-2 text-lg font-medium">Trash is empty</h2>
+    <p class="mb-4 text-sm text-gray-500">Deleted files will appear here</p>
+    <a href="{% url 'dashboard' %}"
+      class="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
+      <i class="ri-arrow-left-line"></i>
+      Go to All Files
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Info Box -->
+<div class="mt-8 rounded-lg bg-blue-50 p-4">
+  <div class="flex">
+    <div class="flex-shrink-0">
+      <i class="ri-information-line text-blue-400"></i>
+    </div>
+    <div class="ml-3">
+      <h3 class="text-sm font-medium text-blue-800">About Trash</h3>
+      <div class="mt-2 text-sm text-blue-700">
+        <p>
+          When you delete files, only the file metadata is stored here for reference. 
+          The actual files are permanently removed to save storage space.
+          This log helps you keep track of what was deleted and when.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+{{ block.super }}
+{% endblock dashboard_js %}

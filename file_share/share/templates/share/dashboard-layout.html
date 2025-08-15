@@ -126,15 +126,15 @@
           <div class="mt-1 p-2">
             <ul class="space-y-1">
               <li>
-                <a href="#"
-                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'starred' %}"
+                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 {% if request.resolver_match.url_name == 'starred' %}bg-purple-100 text-purple-700{% endif %}">
                   <i class="ri-star-line"></i>
                   <span>Starred</span>
                 </a>
               </li>
               <li>
-                <a href="#"
-                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'trash' %}"
+                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 {% if request.resolver_match.url_name == 'trash' %}bg-red-100 text-red-700{% endif %}">
                   <i class="ri-delete-bin-line"></i>
                   <span>Trash</span>
                 </a>

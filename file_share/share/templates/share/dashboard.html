@@ -99,6 +99,13 @@
       </div>
       {% endif %}
 
+      <!-- Star indicator -->
+      {% if file.is_starred %}
+      <div class="absolute top-2 right-2">
+        <i class="ri-star-fill text-yellow-500 text-xl drop-shadow-sm"></i>
+      </div>
+      {% endif %}
+
       <!-- Hover actions -->
       <div
         class="absolute inset-0 flex items-center justify-center opacity-0 bg-black bg-opacity-30 transition-opacity group-hover:opacity-100">
@@ -111,6 +118,16 @@
             class="copy-link flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100"
             data-url="{{ file.get_file_url }}">
             <i class="ri-link-m"></i>
+          </button>
+          <button
+            class="toggle-star flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100"
+            data-id="{{ file.id }}" data-starred="{% if file.is_starred %}true{% else %}false{% endif %}"
+            title="{% if file.is_starred %}Remove from starred{% else %}Add to starred{% endif %}">
+            {% if file.is_starred %}
+            <i class="ri-star-fill text-yellow-500"></i>
+            {% else %}
+            <i class="ri-star-line"></i>
+            {% endif %}
           </button>
         </div>
       </div>
@@ -400,6 +417,68 @@
         } catch (error) {
           console.error('Error:', error);
           showNotification('Failed to update privacy setting', 'error');
+        }
+      });
+    });
+
+    // Toggle star functionality
+    document.querySelectorAll('.toggle-star').forEach(button => {
+      button.addEventListener('click', async function () {
+        const fileId = this.dataset.id;
+        const isStarred = this.dataset.starred === 'true';
+        const method = isStarred ? 'DELETE' : 'POST';
+
+        try {
+          const response = await fetch(`/api/starred-files/${fileId}/`, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            credentials: "include",
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const newStarredState = data.starred;
+            const fileCard = this.closest('.file-card');
+
+            // Update button icon and tooltip
+            if (newStarredState) {
+              this.innerHTML = '<i class="ri-star-fill text-yellow-500"></i>';
+              this.title = 'Remove from starred';
+              
+              // Add/update star indicator in top-right corner
+              const imageContainer = fileCard.querySelector('.aspect-square');
+              let starIndicator = imageContainer.querySelector('.absolute.top-2.right-2');
+              if (!starIndicator) {
+                starIndicator = document.createElement('div');
+                starIndicator.className = 'absolute top-2 right-2';
+                imageContainer.appendChild(starIndicator);
+              }
+              starIndicator.innerHTML = '<i class="ri-star-fill text-yellow-500 text-xl drop-shadow-sm"></i>';
+            } else {
+              this.innerHTML = '<i class="ri-star-line"></i>';
+              this.title = 'Add to starred';
+              
+              // Remove star indicator from top-right corner
+              const imageContainer = fileCard.querySelector('.aspect-square');
+              const starIndicator = imageContainer.querySelector('.absolute.top-2.right-2');
+              if (starIndicator) {
+                starIndicator.remove();
+              }
+            }
+
+            // Update data attribute
+            this.dataset.starred = newStarredState;
+
+            showNotification(data.message, 'success');
+          } else {
+            throw new Error('Failed to update star status');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('Failed to update star status', 'error');
         }
       });
     });
