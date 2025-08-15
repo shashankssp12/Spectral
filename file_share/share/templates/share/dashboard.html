@@ -1,17 +1,19 @@
 {% extends 'share/dashboard-layout.html' %}
 {% load static %}
 
-{% block dashboard_title %}Dashboard{% endblock %}
+{% block dashboard_title %}Dashboard{% endblock dashboard_title %}
 
 {% block dashboard_content %}
 <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
   <h1 class="text-3xl font-bold tracking-tight">My Files</h1>
   <div class="flex gap-2">
-    <button id="upload-button" class="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
+    <button id="upload-button"
+      class="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
       <i class="ri-upload-line"></i>
       Upload
     </button>
-    <a href="{% url 'image_search' %}" class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+    <a href="{% url 'image_search' %}"
+      class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
       Image Search
     </a>
   </div>
@@ -22,16 +24,20 @@
   <div class="border-b">
     <ul class="flex flex-wrap -mb-px">
       <li class="mr-2">
-        <a href="{% url 'dashboard' %}" class="inline-block border-b-2 border-purple-600 py-2 px-4 text-sm font-medium text-purple-600">All</a>
+        <a href="{% url 'dashboard' %}"
+          class="inline-block border-b-2 {% if not request.GET.type or request.GET.type == 'all' %}border-purple-600 text-purple-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} py-2 px-4 text-sm font-medium">All</a>
       </li>
       <li class="mr-2">
-        <a href="{% url 'dashboard' %}?type=images" class="inline-block border-b-2 border-transparent py-2 px-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">Images</a>
+        <a href="{% url 'dashboard' %}?type=images"
+          class="inline-block border-b-2 {% if request.GET.type == 'images' %}border-purple-600 text-purple-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} py-2 px-4 text-sm font-medium">Images</a>
       </li>
       <li class="mr-2">
-        <a href="{% url 'dashboard' %}?type=videos" class="inline-block border-b-2 border-transparent py-2 px-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">Videos</a>
+        <a href="{% url 'dashboard' %}?type=videos"
+          class="inline-block border-b-2 {% if request.GET.type == 'videos' %}border-purple-600 text-purple-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} py-2 px-4 text-sm font-medium">Videos</a>
       </li>
       <li class="mr-2">
-        <a href="{% url 'dashboard' %}?type=documents" class="inline-block border-b-2 border-transparent py-2 px-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">Documents</a>
+        <a href="{% url 'dashboard' %}?type=documents"
+          class="inline-block border-b-2 {% if request.GET.type == 'documents' %}border-purple-600 text-purple-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} py-2 px-4 text-sm font-medium">Documents</a>
       </li>
     </ul>
   </div>
@@ -40,203 +46,405 @@
 <!-- File Grid -->
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
   {% if shared_files %}
-    {% for file in shared_files %}
-      <!-- File Card -->
-      <div class="overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md">
-        <div class="relative aspect-square bg-gray-100">
-          {% if file.file_type|lower in 'png,jpg,jpeg,webp,gif' %}
-            <img src="{{ file.file }}" alt="{{ file.file_name }}" class="h-full w-full object-cover">
-          {% else %}
-            <div class="flex h-full w-full items-center justify-center">
-              <i class="ri-file-text-line text-4xl text-gray-400"></i>
-            </div>
-          {% endif %}
-        </div>
-        
-        <div class="p-4">
-          <div class="mb-2 flex items-start justify-between">
-            <div class="truncate">
-              <h3 class="truncate font-medium">{{ file.file_name }}</h3>
-              <p class="text-xs text-gray-500">{{ file.file_size }}</p>
-            </div>
-            <div class="relative file-actions">
-              <button class="rounded-md p-1 text-gray-500 hover:bg-gray-100 file-menu-btn">
-                <i class="ri-more-2-fill"></i>
-              </button>
-              <!-- Dropdown menu (hidden by default) -->
-              <div class="absolute right-0 mt-1 hidden w-48 rounded-md border bg-white shadow-lg file-menu">
-                <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 copy-link" data-file-id="{{ file.id }}">
-                  <i class="ri-clipboard-line"></i> Copy link
-                </a>
-                <a href="{{ file.file }}" download class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  <i class="ri-download-line"></i> Download
-                </a>
-                <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 toggle-privacy" data-file-id="{{ file.id }}" data-share-type="{{ file.share_type }}">
-                  <i class="ri-lock-line"></i> {% if file.share_type == 'public' %}Make private{% else %}Make public{% endif %}
-                </a>
-                <div class="border-t"></div>
-                <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100 delete-file" data-file-id="{{ file.id }}">
-                  <i class="ri-delete-bin-line"></i> Delete
-                </a>
-              </div>
-            </div>
-          </div>
-          
-          {% if file.file_description %}
-            <div class="mt-2 text-xs text-gray-500">
-              <p>{{ file.file_description|truncatechars:100 }}</p>
-            </div>
-          {% else %}
-            <button class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-1 text-xs hover:bg-gray-50 generate-description" data-file-id="{{ file.id }}">
-              Generate AI Description
-            </button>
-          {% endif %}
-        </div>
-        
-        <div class="flex items-center justify-between border-t bg-gray-50 px-4 py-2">
-          <span class="text-xs text-gray-500">
-            Modified {{ file.share_time|date:"Y-m-d" }}
-          </span>
-          <button class="rounded-full p-1 {% if file.share_type == 'public' %}text-purple-600{% else %}text-gray-500{% endif %} hover:bg-gray-200">
-            <i class="{% if file.share_type == 'public' %}ri-global-line{% else %}ri-lock-line{% endif %} text-sm"></i>
+  {% for file in shared_files %}
+  <!-- File Card -->
+  <div class="group file-card rounded-lg border bg-white shadow-sm transition-all hover:shadow-md">
+    <div class="relative aspect-square bg-gray-100 overflow-hidden rounded-t-lg">
+      {% if file.file_type|lower in 'png,jpg,jpeg,webp,gif' %}
+      <img src="{{ file.file }}" alt="{{ file.file_name }}" class="h-full w-full object-cover">
+      {% elif file.file_type|lower in 'mp4,webm,mov,avi' %}
+      <div class="flex h-full w-full items-center justify-center bg-gray-800">
+        <i class="ri-video-line text-5xl text-gray-400"></i>
+      </div>
+      {% elif file.file_type|lower in 'mp3,wav,ogg' %}
+      <div class="flex h-full w-full items-center justify-center bg-gray-800">
+        <i class="ri-music-line text-5xl text-gray-400"></i>
+      </div>
+      {% else %}
+      <div class="flex h-full w-full items-center justify-center">
+        <i class="ri-file-text-line text-5xl text-gray-400"></i>
+      </div>
+      {% endif %}
+
+      <!-- Hover actions -->
+      <div
+        class="absolute inset-0 flex items-center justify-center opacity-0 bg-black bg-opacity-30 transition-opacity group-hover:opacity-100">
+        <div class="flex gap-2">
+          <a href="{{ file.file }}" download
+            class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100">
+            <i class="ri-download-line"></i>
+          </a>
+          <button
+            class="copy-link flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-700 hover:bg-gray-100"
+            data-url="{{ file.file }}">
+            <i class="ri-link-m"></i>
           </button>
         </div>
       </div>
-    {% endfor %}
-  {% else %}
-    <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
-      <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
-        <i class="ri-file-list-line text-2xl text-purple-600"></i>
-      </div>
-      <h2 class="mb-2 text-lg font-medium">No files yet</h2>
-      <p class="mb-4 text-sm text-gray-500">Upload your first file to get started</p>
-      <button id="empty-upload-button" class="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
-        <i class="ri-upload-line"></i>
-        Upload Files
-      </button>
     </div>
+
+    <div class="p-4">
+      <div class="mb-2 flex items-start justify-between">
+        <div class="truncate">
+          <h3 class="truncate font-medium">{{ file.file_name }}</h3>
+          <p class="text-xs text-gray-500">{{ file.file_size }}</p>
+        </div>
+        <div class="relative">
+          <button class="file-menu-btn rounded-md p-1 text-gray-500 hover:bg-gray-100">
+            <i class="ri-more-2-fill"></i>
+          </button>
+          <div class="file-menu absolute right-0 mt-1 hidden w-48 rounded-md border bg-white shadow-lg z-50">
+            <button class="copy-link w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              data-url="{{ file.file }}">
+              <i class="ri-clipboard-line"></i> Copy link
+            </button>
+            <a href="{{ file.file }}" download
+              class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <i class="ri-download-line"></i> Download
+            </a>
+            <button
+              class="toggle-privacy w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              data-id="{{ file.id }}" data-type="{{ file.share_type }}">
+              <i class="ri-lock-line"></i> {% if file.share_type == 'public' %}Make private{% else %}Make public{% endif
+              %}
+            </button>
+            <div class="border-t"></div>
+            <button class="delete-file w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              data-id="{{ file.id }}">
+              <i class="ri-delete-bin-line"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {% if file.file_description %}
+      <div class="description-container">
+        <div class="description-clamp relative overflow-hidden transition-all" style="max-height: 3rem;">
+          <div class="mt-2 text-xs text-gray-500 description-text">
+            <p>{{ file.file_description }}</p>
+          </div>
+          <div class="fade absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+        </div>
+        <button class="expand-description text-xs text-purple-600 hover:underline mt-1 w-full text-left">Show
+          more</button>
+      </div>
+      {% else %}
+      <button
+        class="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-1 text-xs hover:bg-gray-50 generate-description"
+        data-id="{{ file.id }}">
+        Generate AI Description
+      </button>
+      {% endif %}
+    </div>
+
+    <div class="flex items-center justify-between border-t bg-gray-50 px-4 py-2">
+      <span class="text-xs text-gray-500">
+        Modified {{ file.share_time|date:"m/d/Y" }}
+      </span>
+      <span
+        class="rounded-full p-1 {% if file.share_type == 'public' %}text-purple-600{% else %}text-gray-500{% endif %}">
+        <i class="{% if file.share_type == 'public' %}ri-global-line{% else %}ri-lock-line{% endif %} text-sm"></i>
+      </span>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+    <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
+      <i class="ri-file-list-line text-2xl text-purple-600"></i>
+    </div>
+    <h2 class="mb-2 text-lg font-medium">No files yet</h2>
+    <p class="mb-4 text-sm text-gray-500">Upload your first file to get started</p>
+    <button id="empty-upload-button"
+      class="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
+      <i class="ri-upload-line"></i>
+      Upload Files
+    </button>
+  </div>
   {% endif %}
 </div>
-{% endblock %}
+
+<!-- Notification container (for success/error messages) -->
+<div id="notification-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+{% endblock dashboard_content %}
 
 {% block dashboard_js %}
 {{ block.super }}
 <script>
-  // File menu toggle
-  document.querySelectorAll('.file-menu-btn').forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const menu = this.nextElementSibling;
-      menu.classList.toggle('hidden');
-      
-      // Close other open menus
-      document.querySelectorAll('.file-menu').forEach(m => {
-        if (m !== menu) {
-          m.classList.add('hidden');
+  document.addEventListener('DOMContentLoaded', function () {
+    // Utility: initialize description clamps (show/hide button based on overflow)
+    function initDescriptionClamps(scope = document) {
+      scope.querySelectorAll('.description-container').forEach(container => {
+        const clamp = container.querySelector('.description-clamp');
+        const btn = container.querySelector('.expand-description');
+        if (!clamp || !btn) return;
+        // Reset to collapsed
+        clamp.style.maxHeight = '3rem';
+        const fade = clamp.querySelector('.fade') || clamp.querySelector('.bg-gradient-to-t');
+        if (fade) fade.classList.remove('hidden');
+        btn.textContent = 'Show more';
+        // Measure overflow
+        const needsExpand = clamp.scrollHeight > clamp.clientHeight + 2; // tolerance
+        btn.classList.toggle('hidden', !needsExpand);
+      });
+    }
+
+    // File menu toggle
+    document.querySelectorAll('.file-menu-btn').forEach(button => {
+      button.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const menu = this.nextElementSibling;
+        menu.classList.toggle('hidden');
+
+        // Close other menus
+        document.querySelectorAll('.file-menu').forEach(m => {
+          if (m !== menu) m.classList.add('hidden');
+        });
+      });
+    });
+
+    // Close menus when clicking elsewhere
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.file-menu').forEach(menu => {
+        menu.classList.add('hidden');
+      });
+    });
+
+    // Copy link functionality
+    document.querySelectorAll('.copy-link').forEach(button => {
+      button.addEventListener('click', function () {
+        const url = this.dataset.url;
+        navigator.clipboard.writeText(url).then(function () {
+          showNotification('Link copied to clipboard!', 'success');
+        }).catch(function () {
+          showNotification('Failed to copy link', 'error');
+        });
+      });
+    });
+
+    // Expand/collapse description
+    document.querySelectorAll('.expand-description').forEach(button => {
+      button.addEventListener('click', function () {
+        const container = this.closest('.description-container');
+        const clamp = container.querySelector('.description-clamp');
+        const gradient = clamp.querySelector('.fade') || clamp.querySelector('.bg-gradient-to-t');
+        const isCollapsed = clamp.style.maxHeight === '3rem' || clamp.style.maxHeight === '';
+        if (isCollapsed) {
+          clamp.style.maxHeight = 'none';
+          if (gradient) gradient.classList.add('hidden');
+          this.textContent = 'Show less';
+        } else {
+          clamp.style.maxHeight = '3rem';
+          if (gradient) gradient.classList.remove('hidden');
+          this.textContent = 'Show more';
         }
       });
     });
-  });
-  
-  // Close menus when clicking elsewhere
-  document.addEventListener('click', function() {
-    document.querySelectorAll('.file-menu').forEach(menu => {
-      menu.classList.add('hidden');
-    });
-  });
-  
-  // Handle empty state upload button
-  const emptyUploadButton = document.getElementById('empty-upload-button');
-  if (emptyUploadButton) {
-    emptyUploadButton.addEventListener('click', function() {
-      document.getElementById('upload-modal').classList.remove('hidden');
-    });
-  }
-  
-  // Delete file functionality
-  document.querySelectorAll('.delete-file').forEach(link => {
-    link.addEventListener('click', async function(e) {
-      e.preventDefault();
-      const fileId = this.dataset.fileId;
-      if (confirm('Are you sure you want to delete this file?')) {
+
+    // Generate AI description
+    document.querySelectorAll('.generate-description').forEach(button => {
+      button.addEventListener('click', async function () {
+        const fileId = this.dataset.id;
+
+        // Update button state
+        this.innerHTML = '<i class="ri-loader-2-line animate-spin mr-1"></i> Generating...';
+        this.disabled = true;
+
         try {
+          // Call API to generate description
           const response = await fetch(`/api/shared-files/${fileId}/`, {
-            method: 'DELETE',
+            method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
               'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
             },
+            body: JSON.stringify({
+              generate_description: true
+            }),
           });
-          
+
+          if (!response.ok) {
+            throw new Error('Failed to generate description');
+          }
+
+          const data = await response.json();
+
+          // Replace button with description
+          const descriptionHTML = `
+            <div class="description-container">
+              <div class="description-clamp relative overflow-hidden transition-all" style="max-height: 3rem;">
+                <div class="mt-2 text-xs text-gray-500 description-text">
+                  <p>${data.file_description || 'No description available'}</p>
+                </div>
+                <div class="fade absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+              </div>
+              <button class="expand-description text-xs text-purple-600 hover:underline mt-1 w-full text-left">Show more</button>
+            </div>
+          `;
+
+          const parentDiv = this.parentElement;
+          parentDiv.innerHTML = descriptionHTML;
+
+          // Add event listener to the new expand button
+          const newBtn = parentDiv.querySelector('.expand-description');
+          newBtn.addEventListener('click', function () {
+            const container = this.closest('.description-container');
+            const clamp = container.querySelector('.description-clamp');
+            const gradient = clamp.querySelector('.fade') || clamp.querySelector('.bg-gradient-to-t');
+            const isCollapsed = clamp.style.maxHeight === '3rem' || clamp.style.maxHeight === '';
+            if (isCollapsed) {
+              clamp.style.maxHeight = 'none';
+              if (gradient) gradient.classList.add('hidden');
+              this.textContent = 'Show less';
+            } else {
+              clamp.style.maxHeight = '3rem';
+              if (gradient) gradient.classList.remove('hidden');
+              this.textContent = 'Show more';
+            }
+          });
+
+          // Initialize clamp visibility for the new description
+          initDescriptionClamps(parentDiv);
+
+          showNotification('Description generated successfully', 'success');
+        } catch (error) {
+          console.error('Error:', error);
+          this.textContent = 'Generate AI Description';
+          this.disabled = false;
+          showNotification('Failed to generate description', 'error');
+        }
+      });
+    });
+
+    // Toggle privacy functionality
+    document.querySelectorAll('.toggle-privacy').forEach(button => {
+      button.addEventListener('click', async function () {
+        const fileId = this.dataset.id;
+        const currentShareType = this.dataset.type;
+        const newShareType = currentShareType === 'public' ? 'private' : 'public';
+
+        try {
+          const response = await fetch(`/api/shared-files/${fileId}/`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ share_type: newShareType }),
+          });
+
           if (response.ok) {
-            // Reload the page to show updated file list
-            window.location.reload();
+            // Update button text
+            this.innerHTML = `
+              <i class="ri-lock-line"></i> ${newShareType === 'public' ? 'Make private' : 'Make public'}
+            `;
+
+            // Update data attribute
+            this.dataset.type = newShareType;
+
+            // Update icon in card footer
+            const fileCard = this.closest('.file-card');
+            const statusIcon = fileCard.querySelector('.file-card > div:last-child > span:last-child');
+
+            statusIcon.classList.remove('text-purple-600', 'text-gray-500');
+            statusIcon.classList.add(newShareType === 'public' ? 'text-purple-600' : 'text-gray-500');
+
+            statusIcon.innerHTML = `
+              <i class="${newShareType === 'public' ? 'ri-global-line' : 'ri-lock-line'} text-sm"></i>
+            `;
+
+            showNotification(`File is now ${newShareType}`, 'success');
           } else {
-            alert('Failed to delete file. Please try again.');
+            throw new Error('Failed to update privacy setting');
           }
         } catch (error) {
           console.error('Error:', error);
-          alert('An error occurred. Please try again.');
+          showNotification('Failed to update privacy setting', 'error');
         }
-      }
+      });
     });
-  });
-  
-  // Toggle privacy functionality
-  document.querySelectorAll('.toggle-privacy').forEach(link => {
-    link.addEventListener('click', async function(e) {
-      e.preventDefault();
-      const fileId = this.dataset.fileId;
-      const currentShareType = this.dataset.shareType;
-      const newShareType = currentShareType === 'public' ? 'private' : 'public';
-      
-      try {
-        const response = await fetch(`/api/shared-files/${fileId}/`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-          },
-          body: JSON.stringify({ share_type: newShareType }),
-        });
-        
-        if (response.ok) {
-          // Reload the page to show updated file status
-          window.location.reload();
-        } else {
-          alert('Failed to update file privacy. Please try again.');
+
+    // Delete file functionality
+    document.querySelectorAll('.delete-file').forEach(button => {
+      button.addEventListener('click', async function () {
+        const fileId = this.dataset.id;
+
+        if (confirm('Are you sure you want to delete this file?')) {
+          try {
+            const response = await fetch(`/api/shared-files/${fileId}/`, {
+              method: 'DELETE',
+              headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+              },
+            });
+
+            if (response.ok) {
+              // Remove the card from UI
+              const fileCard = this.closest('.file-card');
+              fileCard.remove();
+
+              showNotification('File deleted successfully', 'success');
+            } else {
+              throw new Error('Failed to delete file');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            showNotification('Failed to delete file', 'error');
+          }
         }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
-      }
+      });
     });
-  });
-  
-  // Generate AI description functionality
-  document.querySelectorAll('.generate-description').forEach(button => {
-    button.addEventListener('click', async function() {
-      const fileId = this.dataset.fileId;
-      this.textContent = 'Generating...';
-      this.disabled = true;
-      
-      try {
-        // Simulate API call - in a real implementation, you would call your backend
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Update UI with a sample description (in production, you'd get this from your API)
-        this.parentElement.innerHTML = `
-          <div class="mt-2 text-xs text-gray-500">
-            <p>A high-quality image with vibrant colors and good composition.</p>
-          </div>
-        `;
-      } catch (error) {
-        console.error('Error:', error);
-        this.textContent = 'Generate AI Description';
-        this.disabled = false;
-        alert('Failed to generate description. Please try again.');
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `px-4 py-3 rounded-lg shadow-md flex items-center gap-2 transform translate-x-full transition-transform duration-300`;
+
+      // Style based on type
+      switch (type) {
+        case 'success':
+          notification.classList.add('bg-green-100', 'border-l-4', 'border-green-500', 'text-green-700');
+          notification.innerHTML = `<i class="ri-check-line"></i>`;
+          break;
+        case 'error':
+          notification.classList.add('bg-red-100', 'border-l-4', 'border-red-500', 'text-red-700');
+          notification.innerHTML = `<i class="ri-error-warning-line"></i>`;
+          break;
+        default:
+          notification.classList.add('bg-blue-100', 'border-l-4', 'border-blue-500', 'text-blue-700');
+          notification.innerHTML = `<i class="ri-information-line"></i>`;
       }
-    });
+
+      // Add message
+      notification.innerHTML += `<span>${message}</span>`;
+
+      // Add to container
+      const notificationContainer = document.getElementById('notification-container');
+      notificationContainer.appendChild(notification);
+
+      // Animate in
+      setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+      }, 10);
+
+      // Remove after delay
+      setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+          notification.remove();
+        }, 300);
+      }, 3000);
+    }
+
+    // Handle empty upload button
+    const emptyUploadButton = document.getElementById('empty-upload-button');
+    if (emptyUploadButton) {
+      emptyUploadButton.addEventListener('click', function () {
+        document.getElementById('upload-modal').classList.remove('hidden');
+      });
+    }
+    // Initialize clamps on load
+    initDescriptionClamps(document);
   });
 </script>
-{% endblock %}
+{% endblock dashboard_js %}
