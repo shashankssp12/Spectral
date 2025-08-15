@@ -141,7 +141,7 @@
       <span class="text-xs text-gray-500">
         Modified {{ file.share_time|date:"m/d/Y" }}
       </span>
-      <span
+      <span data-status-icon
         class="rounded-full p-1 {% if file.share_type == 'public' %}text-purple-600{% else %}text-gray-500{% endif %}">
         <i class="{% if file.share_type == 'public' %}ri-global-line{% else %}ri-lock-line{% endif %} text-sm"></i>
       </span>
@@ -344,14 +344,14 @@
 
             // Update icon in card footer
             const fileCard = this.closest('.file-card');
-            const statusIcon = fileCard.querySelector('.file-card > div:last-child > span:last-child');
-
-            statusIcon.classList.remove('text-purple-600', 'text-gray-500');
-            statusIcon.classList.add(newShareType === 'public' ? 'text-purple-600' : 'text-gray-500');
-
-            statusIcon.innerHTML = `
-              <i class="${newShareType === 'public' ? 'ri-global-line' : 'ri-lock-line'} text-sm"></i>
-            `;
+            const statusIcon = fileCard.querySelector('[data-status-icon]');
+            if (statusIcon) {
+              statusIcon.classList.remove('text-purple-600', 'text-gray-500');
+              statusIcon.classList.add(newShareType === 'public' ? 'text-purple-600' : 'text-gray-500');
+              statusIcon.innerHTML = `
+                <i class="${newShareType === 'public' ? 'ri-global-line' : 'ri-lock-line'} text-sm"></i>
+              `;
+            }
 
             showNotification(`File is now ${newShareType}`, 'success');
           } else {

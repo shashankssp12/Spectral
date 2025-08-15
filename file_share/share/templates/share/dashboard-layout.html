@@ -12,27 +12,24 @@
         <i class="ri-menu-line text-xl"></i>
         <span class="sr-only">Toggle menu</span>
       </button>
-      
+
       <a href="{% url 'dashboard' %}" class="flex items-center gap-2">
         <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-500"></div>
         <span class="text-xl font-bold">Spectral</span>
       </a>
-      
+
       <div class="ml-auto flex items-center gap-2">
         <div class="relative hidden md:block">
           <i class="ri-search-line absolute left-2.5 top-2.5 text-gray-400"></i>
-          <input
-            type="search"
-            placeholder="Search files..."
-            class="w-[200px] rounded-md border border-gray-300 py-2 pl-8 pr-3 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 lg:w-[300px]"
-          >
+          <input type="search" placeholder="Search files..."
+            class="w-[200px] rounded-md border border-gray-300 py-2 pl-8 pr-3 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 lg:w-[300px]">
         </div>
-        
+
         <button class="ml-2 rounded-md p-2 text-gray-500 hover:bg-gray-100">
           <i class="ri-notification-line text-xl"></i>
           <span class="sr-only">Notifications</span>
         </button>
-        
+
         <div class="relative ml-2">
           <button id="user-menu-button" class="rounded-md p-2 text-gray-500 hover:bg-gray-100">
             <i class="ri-user-line text-xl"></i>
@@ -46,68 +43,70 @@
             <div class="border-t"></div>
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
-              <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
+              <button type="submit"
+                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
             </form>
           </div>
         </div>
       </div>
     </div>
   </header>
-  
+
   <div class="flex flex-1">
     <!-- Sidebar (hidden on mobile by default) -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-20 hidden w-64 transform flex-col border-r bg-white transition-transform md:relative md:translate-x-0 md:flex">
-      <div class="border-b p-4">
-        <div class="flex items-center gap-2 px-2">
-          <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-500"></div>
-          <span class="text-xl font-bold">Spectral</span>
-        </div>
-      </div>
-      
+    <aside id="sidebar"
+      class="fixed inset-y-0 left-0 z-20 hidden w-64 transform flex-col border-r bg-white transition-transform md:relative md:translate-x-0 md:flex">
+
       <div class="flex-1 overflow-auto">
         <!-- Main Navigation -->
         <div class="p-2">
           <ul class="space-y-1">
             <li>
-              <a href="{% url 'dashboard' %}" class="flex items-center gap-2 rounded-md {% if request.resolver_match.url_name == 'dashboard' %}bg-purple-50 text-purple-700{% else %}text-gray-700 hover:bg-gray-100{% endif %} px-3 py-2 text-sm font-medium">
+              <a href="{% url 'dashboard' %}"
+                class="flex items-center gap-2 rounded-md {% if request.resolver_match.url_name == 'dashboard' %}bg-purple-50 text-purple-700{% else %}text-gray-700 hover:bg-gray-100{% endif %} px-3 py-2 text-sm font-medium">
                 <i class="ri-home-line"></i>
                 <span>Dashboard</span>
               </a>
             </li>
             <li>
-              <a href="{% url 'image_search' %}" class="flex items-center gap-2 rounded-md {% if request.resolver_match.url_name == 'image_search' %}bg-purple-50 text-purple-700{% else %}text-gray-700 hover:bg-gray-100{% endif %} px-3 py-2 text-sm font-medium">
+              <a href="{% url 'image_search' %}"
+                class="flex items-center gap-2 rounded-md {% if request.resolver_match.url_name == 'image_search' %}bg-purple-50 text-purple-700{% else %}text-gray-700 hover:bg-gray-100{% endif %} px-3 py-2 text-sm font-medium">
                 <i class="ri-search-line"></i>
                 <span>Image Search</span>
               </a>
             </li>
           </ul>
         </div>
-        
+
         <!-- Files Section -->
         <div class="mt-4">
           <h3 class="px-4 text-xs font-medium uppercase text-gray-500">Files</h3>
           <div class="mt-1 p-2">
             <ul class="space-y-1">
               <li>
-                <a href="{% url 'dashboard' %}?type=all" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard' %}?type=all"
+                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
                   <i class="ri-folder-open-line"></i>
                   <span>All Files</span>
                 </a>
               </li>
               <li>
-                <a href="{% url 'dashboard' %}?type=images" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard' %}?type=images"
+                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
                   <i class="ri-image-line"></i>
                   <span>Images</span>
                 </a>
               </li>
               <li>
-                <a href="{% url 'dashboard' %}?type=videos" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard' %}?type=videos"
+                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
                   <i class="ri-video-line"></i>
                   <span>Videos</span>
                 </a>
               </li>
               <li>
-                <a href="{% url 'dashboard' %}?type=documents" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard' %}?type=documents"
+                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
                   <i class="ri-file-text-line"></i>
                   <span>Documents</span>
                 </a>
@@ -115,20 +114,22 @@
             </ul>
           </div>
         </div>
-        
+
         <!-- Library Section -->
         <div class="mt-4">
           <h3 class="px-4 text-xs font-medium uppercase text-gray-500">Library</h3>
           <div class="mt-1 p-2">
             <ul class="space-y-1">
               <li>
-                <a href="#" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <a href="#"
+                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
                   <i class="ri-star-line"></i>
                   <span>Starred</span>
                 </a>
               </li>
               <li>
-                <a href="#" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <a href="#"
+                  class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
                   <i class="ri-delete-bin-line"></i>
                   <span>Trash</span>
                 </a>
@@ -136,7 +137,7 @@
             </ul>
           </div>
         </div>
-        
+
         <!-- Storage Section -->
         <div class="mt-4">
           <h3 class="px-4 text-xs font-medium uppercase text-gray-500">Storage</h3>
@@ -151,12 +152,13 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Sidebar Footer -->
       <div class="border-t p-4">
         <ul class="space-y-1">
           <li>
-            <a href="#" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <a href="#"
+              class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
               <i class="ri-settings-line"></i>
               <span>Settings</span>
             </a>
@@ -164,7 +166,8 @@
           <li>
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
-              <button type="submit" class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              <button type="submit"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
                 <i class="ri-logout-box-line"></i>
                 <span>Sign out</span>
               </button>
@@ -173,7 +176,7 @@
         </ul>
       </div>
     </aside>
-    
+
     <!-- Main Content -->
     <main class="flex-1 p-6">
       {% block dashboard_content %}{% endblock dashboard_content %}
@@ -193,11 +196,12 @@
         </button>
       </div>
     </div>
-    
+
     <form id="upload-form" method="post" action="{% url 'shared_files' %}" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="p-4">
-        <div id="drop-area" class="flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 hover:border-purple-500 hover:bg-purple-50">
+        <div id="drop-area"
+          class="flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 hover:border-purple-500 hover:bg-purple-50">
           <i class="ri-upload-cloud-line mb-4 text-4xl text-gray-400"></i>
           <p class="mb-2 text-sm font-medium">
             Drag files here or click to browse
@@ -207,7 +211,7 @@
           </p>
           <input id="file-upload" name="file" type="file" multiple class="hidden">
         </div>
-        
+
         <div id="selected-files" class="mt-4 hidden">
           <h4 class="mb-2 text-sm font-medium">Selected Files</h4>
           <div class="max-h-[200px] overflow-y-auto rounded-md border">
@@ -215,12 +219,14 @@
           </div>
         </div>
       </div>
-      
+
       <div class="flex justify-end gap-2 border-t p-4">
-        <button id="cancel-upload" type="button" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <button id="cancel-upload" type="button"
+          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
           Cancel
         </button>
-        <button id="confirm-upload" type="submit" class="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700" disabled>
+        <button id="confirm-upload" type="submit"
+          class="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700" disabled>
           Upload
         </button>
       </div>
@@ -231,26 +237,26 @@
 {% block dashboard_js %}
 <script>
   // Toggle sidebar on mobile
-  document.getElementById('sidebar-toggle').addEventListener('click', function() {
+  document.getElementById('sidebar-toggle').addEventListener('click', function () {
     const sidebar = document.getElementById('sidebar');
     sidebar.classList.toggle('hidden');
     sidebar.classList.toggle('flex');
   });
-  
+
   // Toggle user dropdown
-  document.getElementById('user-menu-button').addEventListener('click', function() {
+  document.getElementById('user-menu-button').addEventListener('click', function () {
     document.getElementById('user-dropdown').classList.toggle('hidden');
   });
-  
+
   // Close user dropdown when clicking outside
-  document.addEventListener('click', function(event) {
+  document.addEventListener('click', function (event) {
     const userMenu = document.getElementById('user-menu-button');
     const userDropdown = document.getElementById('user-dropdown');
     if (!userMenu.contains(event.target) && !userDropdown.contains(event.target)) {
       userDropdown.classList.add('hidden');
     }
   });
-  
+
   // Upload modal functionality
   const uploadButton = document.getElementById('upload-button');
   const uploadModal = document.getElementById('upload-modal');
@@ -260,102 +266,102 @@
   const fileUpload = document.getElementById('file-upload');
   const selectedFiles = document.getElementById('selected-files');
   const confirmUpload = document.getElementById('confirm-upload');
-  
+
   if (uploadButton) {
-    uploadButton.addEventListener('click', function() {
+    uploadButton.addEventListener('click', function () {
       uploadModal.classList.remove('hidden');
     });
   }
-  
-  closeUploadModal.addEventListener('click', function() {
+
+  closeUploadModal.addEventListener('click', function () {
     uploadModal.classList.add('hidden');
   });
-  
-  cancelUpload.addEventListener('click', function() {
+
+  cancelUpload.addEventListener('click', function () {
     uploadModal.classList.add('hidden');
   });
-  
-  dropArea.addEventListener('click', function() {
+
+  dropArea.addEventListener('click', function () {
     fileUpload.click();
   });
-  
+
   // Prevent default drag behaviors
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropArea.addEventListener(eventName, preventDefaults, false);
     document.body.addEventListener(eventName, preventDefaults, false);
   });
-  
+
   // Highlight drop area when item is dragged over it
   ['dragenter', 'dragover'].forEach(eventName => {
     dropArea.addEventListener(eventName, highlight, false);
   });
-  
+
   ['dragleave', 'drop'].forEach(eventName => {
     dropArea.addEventListener(eventName, unhighlight, false);
   });
-  
+
   // Handle dropped files
   dropArea.addEventListener('drop', handleDrop, false);
   fileUpload.addEventListener('change', handleFiles, false);
-  
+
   function preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
   }
-  
+
   function highlight() {
     dropArea.classList.add('border-purple-500', 'bg-purple-50');
   }
-  
+
   function unhighlight() {
     dropArea.classList.remove('border-purple-500', 'bg-purple-50');
   }
-  
+
   function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
     handleFiles(files);
   }
-  
+
   function handleFiles(e) {
     let files = e.files || e.target.files;
     if (files.length > 0) {
       selectedFiles.classList.remove('hidden');
       confirmUpload.disabled = false;
-      
+
       const fileList = selectedFiles.querySelector('div');
       fileList.innerHTML = '';
-      
+
       Array.from(files).forEach(file => {
         const fileItem = document.createElement('div');
         fileItem.className = 'flex items-center justify-between border-b p-2 last:border-0';
-        
+
         const fileInfo = document.createElement('div');
         fileInfo.className = 'flex items-center gap-2 truncate';
-        
+
         const fileIcon = document.createElement('div');
         fileIcon.className = 'flex h-8 w-8 items-center justify-center rounded bg-gray-100';
-        
+
         let iconClass = 'ri-file-text-line';
         if (file.type.includes('image')) {
           iconClass = 'ri-image-line';
         } else if (file.type.includes('video')) {
           iconClass = 'ri-video-line';
         }
-        
+
         fileIcon.innerHTML = `<i class="${iconClass} text-gray-500"></i>`;
-        
+
         const fileName = document.createElement('span');
         fileName.className = 'truncate text-sm';
         fileName.textContent = file.name;
-        
+
         fileInfo.appendChild(fileIcon);
         fileInfo.appendChild(fileName);
-        
+
         const removeButton = document.createElement('button');
         removeButton.className = 'h-8 w-8 rounded-md p-1 text-gray-500 hover:bg-gray-100';
         removeButton.innerHTML = '<i class="ri-close-line"></i>';
-        
+
         fileItem.appendChild(fileInfo);
         fileItem.appendChild(removeButton);
         fileList.appendChild(fileItem);

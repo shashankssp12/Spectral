@@ -5,8 +5,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserRegistrationSerializer, UserProfileSerializer, SharedFileSerializer
 from .models import SharedFile
-import faiss
-import numpy as np
 from .desc_generator import generate_tag
 from .similar_img import search_similar_images
 # added while creating template views: 
