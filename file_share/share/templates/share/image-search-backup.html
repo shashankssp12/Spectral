@@ -1,0 +1,520 @@
+{% extends 'share/dashboard-layout.html' %}
+{% load static %}
+
+{% block dashboard_title %}Image Search{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6 flex items-center gap-4">
+    <a href="{% url 'dashboard' %}" class="rounded-md p-1 text-gray-500 hover:bg-gray-100">
+        <i class="ri-arrow-left-line text-xl"></i>
+    </a>
+    <h1 class="text-3xl font-bold tracking-tight">Image Search</h1>
+</div>
+
+<div class="rounded-lg border bg-white shadow-sm">
+    <div class="p-6">
+        <div class="mb-6 text-center">
+            <h2 class="mb-2 text-xl font-semibold">Find Similar Images</h2>
+            <p class="text-gray-500">
+                Upload an image to find similar images in your collection
+            </p>
+        </div>
+
+        <!-- Image Upload and Search Area -->
+        <div class="flex flex-col lg:flex-row gap-6 items-start">
+            <!-- Upload Section -->
+            <div id="image-search-container" class="w-full lg:w-80 flex-shrink-0">
+                <form id="image-search-form">
+                    {% csrf_token %}
+                    <div id="image-search-upload-area"
+                        class="flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-4 hover:border-purple-500 hover:bg-purple-50">
+                        <i class="ri-upload-cloud-line mb-3 text-3xl text-gray-400"></i>
+                        <p class="mb-1 text-sm font-medium text-center">
+                            Drag an image here or click to browse
+                        </p>
+                        <p class="text-xs text-gray-500 text-center">
+                            Find similar images in your collection
+                        </p>
+                        <input id="image-search-input" type="file" accept="image/*" class="hidden" name="image">
+                        <input type="hidden" id="image-url" name="image_url" value="">
+                    </div>
+
+                    <!-- Preview Area (hidden by default) -->
+                    <div id="image-preview-container" class="relative hidden rounded-lg border mt-4">
+                        <div class="aspect-square w-full overflow-hidden rounded-lg max-w-80">
+                            <img id="preview-image" src="#" alt="Search reference" class="h-full w-full object-cover">
+                        </div>
+                        <button id="remove-image" type="button"
+                            class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600">
+                            <i class="ri-close-line"></i>
+                        </button>
+                        <div class="mt-4">
+                            <button type="submit" id="search-button"
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-md bg-purple-600 px-4 py-3 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="ri-search-line"></i>
+                                Find Similar Images
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div id="search-results" class="flex-1 hidden">
+                <div class="mb-6 border-b border-gray-200 pb-4">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100">
+                            <i class="ri-search-eye-line text-purple-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">Similar Images Found</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm ml-11">Results ranked by similarity to your uploaded image</p>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-results" class="hidden">
+                    <div class="space-y-8">
+                        <!-- Top results loading -->
+                        <div>
+                            <h4 class="text-lg font-medium mb-4 flex items-center gap-2">
+                                <i class="ri-trophy-line text-yellow-500"></i>
+                                Top Matches
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                <div class="overflow-hidden rounded-xl border bg-white shadow-sm">
+                                    <div class="aspect-square w-full animate-pulse bg-gray-200"></div>
+                                    <div class="p-4">
+                                        <div class="h-4 w-3/4 animate-pulse rounded bg-gray-200 mb-2"></div>
+                                        <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Container -->
+                <div id="results-container">
+                    <!-- Results will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block dashboard_js %}
+{{ block.super }}
+<script>
+    // Global variables for pagination
+    let currentPage = 1;
+    let hasMoreResults = false;
+    let allLoadedResults = [];
+
+    // Image search functionality
+    const imageSearchArea = document.getElementById('image-search-upload-area');
+    const imageSearchInput = document.getElementById('image-search-input');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const removeImageButton = document.getElementById('remove-image');
+    const searchResults = document.getElementById('search-results');
+    const loadingResults = document.getElementById('loading-results');
+    const resultsContainer = document.getElementById('results-container');
+    const imageUrlInput = document.getElementById('image-url');
+
+    // File input change handler
+    imageSearchInput.addEventListener('change', async function (e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            await uploadTempImage(file);
+        }
+    });
+
+    // Click to upload
+    imageSearchArea.addEventListener('click', function () {
+        imageSearchInput.click();
+    });
+
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        imageSearchArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        imageSearchArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        imageSearchArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    imageSearchArea.addEventListener('drop', handleDrop, false);
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight() {
+        imageSearchArea.classList.add('border-purple-500', 'bg-purple-50');
+    }
+
+    function unhighlight() {
+        imageSearchArea.classList.remove('border-purple-500', 'bg-purple-50');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files[0] && files[0].type.startsWith('image/')) {
+            uploadTempImage(files[0]);
+        }
+    }
+
+    // Upload temporary image
+    async function uploadTempImage(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/temp-upload/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: formData,
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                previewImage.src = data.file_url;
+                imageUrlInput.value = data.file_url;
+
+                imageSearchArea.style.display = 'none';
+                imagePreviewContainer.classList.remove('hidden');
+            } else {
+                throw new Error('Failed to upload image');
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            showNotification('Failed to upload image. Please try again.', 'error');
+        }
+    }
+
+    // Remove image functionality
+    removeImageButton.addEventListener('click', function () {
+        if (imageUrlInput.value) {
+            cleanupTempFile(imageUrlInput.value);
+        }
+
+        imagePreviewContainer.classList.add('hidden');
+        imageSearchArea.style.display = 'flex';
+        imageUrlInput.value = '';
+        imageSearchInput.value = '';
+        searchResults.classList.add('hidden');
+    });
+
+    // Form submission with pagination
+    document.getElementById('image-search-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        if (!imageUrlInput.value) {
+            alert('Please upload an image first.');
+            return;
+        }
+
+        // Reset pagination state
+        currentPage = 1;
+        hasMoreResults = false;
+        allLoadedResults = [];
+
+        await performSearch();
+    });
+
+    // Function to perform search with pagination
+    async function performSearch(page = 1) {
+        const searchButton = document.getElementById('search-button');
+        const originalButtonContent = searchButton.innerHTML;
+
+        searchButton.disabled = true;
+        searchButton.innerHTML = '<i class="ri-loader-2-line animate-spin"></i> Searching...';
+
+        searchResults.classList.remove('hidden');
+        loadingResults.classList.remove('hidden');
+
+        if (page === 1) {
+            resultsContainer.classList.add('hidden');
+        }
+
+        try {
+            const searchUrl = `/similar-images/?image_url=${encodeURIComponent(imageUrlInput.value)}&page=${page}&per_page=10`;
+
+            const response = await fetch(searchUrl, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (page === 1) {
+                    allLoadedResults = data.results;
+                    displaySearchResults(data.results, data.pagination);
+                } else {
+                    allLoadedResults = allLoadedResults.concat(data.results);
+                    appendSearchResults(data.results, data.pagination);
+                }
+
+                currentPage = data.pagination.page;
+                hasMoreResults = data.pagination.has_next;
+
+                if (page === 1 && imageUrlInput.value) {
+                    cleanupTempFile(imageUrlInput.value);
+                }
+            } else {
+                throw new Error('Failed to search for similar images');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('An error occurred while searching for similar images. Please try again.', 'error');
+            if (page === 1) {
+                searchResults.classList.add('hidden');
+            }
+        } finally {
+            loadingResults.classList.add('hidden');
+            searchButton.disabled = false;
+            searchButton.innerHTML = originalButtonContent;
+        }
+    }
+
+    // Display search results
+    function displaySearchResults(similarImages, pagination) {
+        resultsContainer.innerHTML = '';
+
+        if (similarImages.length === 0) {
+            resultsContainer.innerHTML = `
+        <div class="text-center py-16">
+          <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mx-auto">
+            <i class="ri-search-line text-2xl text-gray-400"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No similar images found</h3>
+          <p class="text-gray-500">Try uploading a different image to find matches in your collection.</p>
+        </div>
+      `;
+        } else {
+            const topResults = similarImages.slice(0, 3);
+            const otherResults = similarImages.slice(3);
+
+            let resultsHTML = `
+        <div class="mb-6 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <i class="ri-information-line"></i>
+            <span>Showing ${similarImages.length} of ${pagination.total} results</span>
+          </div>
+          <div class="text-xs text-gray-500">
+            Page ${pagination.page} of ${pagination.total_pages}
+          </div>
+        </div>
+      `;
+
+            // Top Results Section
+            if (topResults.length > 0) {
+                resultsHTML += `
+          <div class="mb-8">
+            <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="ri-trophy-line text-yellow-500"></i>
+              Top Matches
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        `;
+
+                topResults.forEach((image, index) => {
+                    const similarityPercentage = Math.round(image.similarity * 100);
+                    const badgeColor = getBadgeColor(similarityPercentage);
+                    const rankIcon = index === 0 ? 'ri-medal-line' : index === 1 ? 'ri-award-line' : 'ri-star-line';
+
+                    resultsHTML += `
+            <div class="group overflow-hidden rounded-xl border-2 ${badgeColor.border} bg-white shadow-lg transition-all hover:shadow-xl hover:scale-105">
+              <div class="relative aspect-square bg-gray-100">
+                <img src="${image.file_url}" alt="${image.file_name}" class="h-full w-full object-cover">
+                <div class="absolute top-3 left-3 flex items-center gap-2 ${badgeColor.bg} px-3 py-2 rounded-full shadow-lg">
+                  <i class="${rankIcon} text-white text-sm"></i>
+                  <span class="text-white font-bold text-sm">${similarityPercentage}%</span>
+                </div>
+                <div class="absolute top-3 right-3 flex items-center justify-center w-8 h-8 bg-white/90 rounded-full shadow-md">
+                  <span class="font-bold text-gray-700">#${index + 1}</span>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="font-semibold text-gray-900 mb-2 truncate">${image.file_name}</h3>
+                <div class="flex items-center justify-between text-sm text-gray-600">
+                  <span class="font-medium">${image.file_size}</span>
+                  <span>${new Date(image.share_time).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+          `;
+                });
+
+                resultsHTML += '</div></div>';
+            }
+
+            // Other Results Section
+            if (otherResults.length > 0) {
+                resultsHTML += `
+          <div class="mb-8" data-other-results>
+            <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="ri-grid-line text-gray-500"></i>
+              Other Matches (${otherResults.length})
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        `;
+
+                otherResults.forEach((image) => {
+                    const similarityPercentage = Math.round(image.similarity * 100);
+                    const badgeColor = getBadgeColor(similarityPercentage);
+
+                    resultsHTML += `
+            <div class="group overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md hover:scale-105">
+              <div class="relative aspect-square bg-gray-100">
+                <img src="${image.file_url}" alt="${image.file_name}" class="h-full w-full object-cover">
+                <div class="absolute top-2 left-2 ${badgeColor.bg} px-2 py-1 rounded-full shadow-md">
+                  <span class="text-white font-bold text-xs">${similarityPercentage}%</span>
+                </div>
+              </div>
+              <div class="p-3">
+                <h4 class="font-medium text-gray-900 text-sm truncate mb-1">${image.file_name}</h4>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <span>${image.file_size}</span>
+                  <span class="font-bold ${badgeColor.text}">${similarityPercentage}%</span>
+                </div>
+              </div>
+            </div>
+          `;
+                });
+
+                resultsHTML += '</div></div>';
+            }
+
+            resultsContainer.innerHTML = resultsHTML;
+
+            // Add Load More button if there are more results
+            if (pagination.has_next) {
+                addLoadMoreButton();
+            }
+        }
+
+        resultsContainer.classList.remove('hidden');
+    }
+
+    // Add Load More button
+    function addLoadMoreButton() {
+        const loadMoreHTML = `
+      <div id="load-more-btn" class="mt-8 text-center">
+        <button class="inline-flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-6 py-3 text-sm font-medium text-purple-700 hover:bg-purple-100 transition-colors" onclick="loadMoreResults()">
+          <i class="ri-arrow-down-line"></i>
+          Load More Results
+        </button>
+        <p class="mt-2 text-xs text-gray-500">
+          Showing ${allLoadedResults.length} results so far
+        </p>
+      </div>
+    `;
+
+        resultsContainer.insertAdjacentHTML('beforeend', loadMoreHTML);
+    }
+
+    // Load more results function
+    async function loadMoreResults() {
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const originalContent = loadMoreBtn.innerHTML;
+
+        loadMoreBtn.innerHTML = `
+      <button class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-6 py-3 text-sm font-medium text-gray-400 cursor-not-allowed" disabled>
+        <i class="ri-loader-2-line animate-spin"></i>
+        Loading...
+      </button>
+    `;
+
+        await performSearch(currentPage + 1);
+    }
+
+    // Helper function for badge colors
+    function getBadgeColor(percentage) {
+        if (percentage >= 90) {
+            return {
+                bg: 'bg-green-500',
+                text: 'text-green-600',
+                border: 'border-green-200'
+            };
+        } else if (percentage >= 75) {
+            return {
+                bg: 'bg-blue-500',
+                text: 'text-blue-600',
+                border: 'border-blue-200'
+            };
+        } else if (percentage >= 60) {
+            return {
+                bg: 'bg-yellow-500',
+                text: 'text-yellow-600',
+                border: 'border-yellow-200'
+            };
+        } else {
+            return {
+                bg: 'bg-gray-500',
+                text: 'text-gray-600',
+                border: 'border-gray-200'
+            };
+        }
+    }
+
+    // Cleanup temp file
+    async function cleanupTempFile(fileUrl) {
+        try {
+            await fetch('/cleanup-temp/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: JSON.stringify({ file_url: fileUrl }),
+                credentials: "include",
+            });
+        } catch (error) {
+            console.error('Error cleaning up temp file:', error);
+        }
+    }
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-md flex items-center gap-2 transform translate-x-full transition-transform duration-300`;
+
+        switch (type) {
+            case 'success':
+                notification.classList.add('bg-green-100', 'border-l-4', 'border-green-500', 'text-green-700');
+                notification.innerHTML = `<i class="ri-check-line"></i>`;
+                break;
+            case 'error':
+                notification.classList.add('bg-red-100', 'border-l-4', 'border-red-500', 'text-red-700');
+                notification.innerHTML = `<i class="ri-error-warning-line"></i>`;
+                break;
+            default:
+                notification.classList.add('bg-blue-100', 'border-l-4', 'border-blue-500', 'text-blue-700');
+                notification.innerHTML = `<i class="ri-information-line"></i>`;
+        }
+
+        notification.innerHTML += `<span>${message}</span>`;
+        document.body.appendChild(notification);
+
+        setTimeout(() => notification.classList.remove('translate-x-full'), 10);
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+</script>
+{% endblock %}

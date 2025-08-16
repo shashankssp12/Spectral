@@ -19,7 +19,7 @@ urlpatterns = [
     path('starred-files/<int:file_id>/', StarredFileView.as_view(), name='starred_file'),
     path('temp-upload/', TemporaryImageUploadView.as_view(), name='temp_upload'),
     # Template URLs new template routes
-        path('', index_view, name='index'),
+    path('', index_view, name='index'),
     path('accounts/login/', login_view, name='login'),
     path('accounts/logout/', logout_view, name='logout'),
     path('accounts/signup/', signup_view, name='signup'),

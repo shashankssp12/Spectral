@@ -207,7 +207,7 @@
   // Function to cleanup temporary file
   async function cleanupTempFile(filePath) {
     if (!filePath) return;
-    
+
     try {
       await fetch('/temp-upload/', {
         method: 'DELETE',
@@ -228,7 +228,7 @@
     if (imageUrlInput.value) {
       cleanupTempFile(imageUrlInput.value);
     }
-    
+
     imagePreviewContainer.classList.add('hidden');
     imageSearchArea.classList.remove('hidden');
     searchResults.classList.add('hidden');
@@ -313,7 +313,7 @@
       if (response.ok) {
         const similarImages = await response.json();
         displaySearchResults(similarImages);
-        
+
         // Cleanup temp file after successful search
         if (imageUrlInput.value) {
           cleanupTempFile(imageUrlInput.value);
